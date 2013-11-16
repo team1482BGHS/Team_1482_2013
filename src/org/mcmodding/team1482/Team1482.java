@@ -8,9 +8,14 @@
 package org.mcmodding.team1482;
 
 
+import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.DriverStationLCD;
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -24,6 +29,21 @@ public class Team1482 extends IterativeRobot {
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
      */
+    //timing ints
+    int m_disabledPeriodicLoops;
+    int m_autoPeriodicLoops;
+    int m_telePeriodicLoops;
+    int m_teleEnabledLoops;
+    int m_dsPacketsReceivedInCurrentSecond;    
+    int cyclecount;
+    
+    //Set up demo mode variables
+    boolean m_demoMode = false;
+    boolean m_shooterEnabled = true;
+    int m_driveSpeedModifier = 100;
+    
+    
+    //setup talons
     Talon drive_left_back = new Talon(1);
     Talon drive_right_back = new Talon(2);
     Talon drive_left_front = new Talon(3);
@@ -31,18 +51,70 @@ public class Team1482 extends IterativeRobot {
     
     RobotDrive drive = new RobotDrive(drive_left_front, drive_left_back, drive_right_front, drive_right_back);
     
+    //Joystick setup
+    Joystick drivestick = new Joystick(1);
+    Joystick shootstick = new Joystick(2);
+    public static int NUM_JOYSTICK_BUTTONS = 16;
+    //joystick buttons
+    boolean[] m_driveStickButtonState = new boolean[(NUM_JOYSTICK_BUTTONS+1)];
+    boolean[] m_shootStickButtonState = new boolean[(NUM_JOYSTICK_BUTTONS+1)];    
+    //Pressed or heald
+    String[] driveButtons = new String[16];
+    String[] shootButtons = new String[16];
+    
+    //Setup compressor
+    Compressor airCompressor      = new Compressor(1,1);
+    public Solenoid Shoot         = new Solenoid(1);
+    public Solenoid ShootReset    = new Solenoid(2);
+    public Solenoid Lift          = new Solenoid(3);
+    public Solenoid LiftReset     = new Solenoid(4);
+    
+    
+    public Team1482() {
+        System.out.println("Starting constructor!");
+
+        int buttonNum = 1;
+        for (buttonNum = 1; buttonNum <= NUM_JOYSTICK_BUTTONS; buttonNum++) {
+            m_driveStickButtonState[buttonNum] = false;
+            m_shootStickButtonState[buttonNum] = false;  
+            driveButtons[buttonNum] = null;
+            shootButtons[buttonNum] = null;
+        }        
+    }
     
     public void robotInit() {
-
+        System.out.println("Starting RobotInit");
+        //get smartdashboard variables
+        SmartDashboard.putBoolean("Lift State", false);
+        SmartDashboard.getBoolean("Demo Mode", false);
+        SmartDashboard.getBoolean("Enable shooter?" , true);
+        
+        System.out.println("RobotInit compleated!");
+        
+        
+        
     }
 
     /**
-     * This function is called periodically during autonomous
+     * This function is called at the start of autonomous
      */
-    public void autonomousPeriodic() {
-
+    public void autonomousInit() {
+        System.out.println("There is no autonomous code!");
     }
 
+    public void teleopInit() {
+        System.out.println("Starting Teleop!");
+        //Reset loop counters
+        m_teleEnabledLoops = 0;
+        m_telePeriodicLoops = 0;
+        getWatchdog().setEnabled(true);
+        getWatchdog().setExpiration(0.05);
+        airCompressor.start();
+        
+        //Get smartdashboard variables
+        m_demoMode = SmartDashboard.getBoolean("Demo Mode");
+        this.checkDemoMode();
+    }
     /**
      * This function is called periodically during operator control
      */
@@ -56,5 +128,26 @@ public class Team1482 extends IterativeRobot {
     public void testPeriodic() {
     
     }
-    
+
+
+
+    public boolean checkDemoMode(int loops, boolean force) {
+        //excute once every 40 calls
+
+        if (m_demoMode) {
+            if (loops % 40 == 0 || force) {
+                //DEMO MODE CODE HERE!
+                m_shooterEnabled = SmartDashboard.getBoolean("Enable shooter?");
+                if (!m_shooterEnabled) {
+                    System.out.println("Shooter dissabled!");
+                }
+                m_driveSpeedModifier = (int) SmartDashboard.getNumber("Drive speed modifier");
+
+            }
+            return true;
+        } else {
+            return false;
+        }
+
+    }
 }
