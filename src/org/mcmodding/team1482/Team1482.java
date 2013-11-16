@@ -119,6 +119,7 @@ public class Team1482 extends IterativeRobot {
      * This function is called periodically during operator control
      */
     public void teleopPeriodic() {
+        if(isEnabled()){
         double speedModifier;
         //Get joystck values
         double drivestick_x = drivestick.getRawAxis(1);
@@ -129,13 +130,20 @@ public class Team1482 extends IterativeRobot {
             speedModifier = m_driveSpeedModifier / 100;
             drivestick_x = drivestick_x * speedModifier;
             drivestick_y = drivestick_y * speedModifier;
+            //Put joystick values for debugging.
             SmartDashboard.putNumber("drivestick_x", drivestick_x);
             SmartDashboard.putNumber("drivestick_y", drivestick_y);
+            if(drivestick_x > 1 || drivestick_y > 1){
+                System.out.println("ERROR!!!!!!!! JOYSTICK VALUE IS GREATOR THAT 1!!! BIG PROBLEM! DISSABLEING ROBOT ");
+                drive.stopMotor();
+                return;
+            }
         }
         drive.arcadeDrive(drivestick_x, drivestick_y);
         getWatchdog().feed();
         Timer.delay(0.01);
         
+    }
     }
     
     /**
