@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
@@ -40,7 +41,7 @@ public class Team1482 extends IterativeRobot {
     //Set up demo mode variables
     boolean m_demoMode = false;
     boolean m_shooterEnabled = true;
-    int m_driveSpeedModifier = 100;
+    double m_driveSpeedModifier = 100;
     
     
     //setup talons
@@ -73,8 +74,7 @@ public class Team1482 extends IterativeRobot {
     public Team1482() {
         System.out.println("Starting constructor!");
 
-        int buttonNum = 1;
-        for (buttonNum = 1; buttonNum <= NUM_JOYSTICK_BUTTONS; buttonNum++) {
+        for (int buttonNum = 1; buttonNum <= NUM_JOYSTICK_BUTTONS; buttonNum++) {
             m_driveStickButtonState[buttonNum] = false;
             m_shootStickButtonState[buttonNum] = false;  
             driveButtons[buttonNum] = null;
@@ -113,12 +113,28 @@ public class Team1482 extends IterativeRobot {
         
         //Get smartdashboard variables
         m_demoMode = SmartDashboard.getBoolean("Demo Mode");
-        this.checkDemoMode();
+        this.checkDemoMode(m_teleEnabledLoops, true);
     }
     /**
      * This function is called periodically during operator control
      */
     public void teleopPeriodic() {
+        double speedModifier;
+        //Get joystck values
+        double drivestick_x = drivestick.getRawAxis(1);
+        double drivestick_y = drivestick.getRawAxis(2);
+        
+        if(this.checkDemoMode(m_telePeriodicLoops, false)){
+            //If is in demo mode apply speed modifier
+            speedModifier = m_driveSpeedModifier / 100;
+            drivestick_x = drivestick_x * speedModifier;
+            drivestick_y = drivestick_y * speedModifier;
+            SmartDashboard.putNumber("drivestick_x", drivestick_x);
+            SmartDashboard.putNumber("drivestick_y", drivestick_y);
+        }
+        drive.arcadeDrive(drivestick_x, drivestick_y);
+        getWatchdog().feed();
+        Timer.delay(0.01);
         
     }
     
@@ -132,10 +148,14 @@ public class Team1482 extends IterativeRobot {
 
 
     public boolean checkDemoMode(int loops, boolean force) {
-        //excute once every 40 calls
-
+        //See if robot is in dissabled mode every 40 loops
+        if(loops % 40 == 0 || force){
+            m_demoMode = SmartDashboard.getBoolean("Demo Mode");
+        }
         if (m_demoMode) {
+            //excute once every 40 calls
             if (loops % 40 == 0 || force) {
+                
                 //DEMO MODE CODE HERE!
                 m_shooterEnabled = SmartDashboard.getBoolean("Enable shooter?");
                 if (!m_shooterEnabled) {
