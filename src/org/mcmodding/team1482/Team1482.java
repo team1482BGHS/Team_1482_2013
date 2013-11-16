@@ -52,6 +52,9 @@ public class Team1482 extends IterativeRobot {
     
     RobotDrive drive = new RobotDrive(drive_left_front, drive_left_back, drive_right_front, drive_right_back);
     
+    
+    
+    
     //Joystick setup
     Joystick drivestick = new Joystick(1);
     Joystick shootstick = new Joystick(2);
@@ -75,6 +78,7 @@ public class Team1482 extends IterativeRobot {
         System.out.println("Starting constructor!");
 
         for (int buttonNum = 1; buttonNum <= NUM_JOYSTICK_BUTTONS; buttonNum++) {
+            //Set default vales for jpystick button arrays
             m_driveStickButtonState[buttonNum] = false;
             m_shootStickButtonState[buttonNum] = false;  
             driveButtons[buttonNum] = null;
@@ -88,6 +92,13 @@ public class Team1482 extends IterativeRobot {
         SmartDashboard.putBoolean("Lift State", false);
         SmartDashboard.getBoolean("Demo Mode", false);
         SmartDashboard.getBoolean("Enable shooter?" , true);
+        
+        /* Uncomment code to invert motor*/
+//        drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
+//        drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+//        drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);        
+//        drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);       
+        
         
         System.out.println("RobotInit compleated!");
         
@@ -107,6 +118,7 @@ public class Team1482 extends IterativeRobot {
         //Reset loop counters
         m_teleEnabledLoops = 0;
         m_telePeriodicLoops = 0;
+        //set experation and enable watchdog
         getWatchdog().setEnabled(true);
         getWatchdog().setExpiration(0.05);
         airCompressor.start();
@@ -119,42 +131,57 @@ public class Team1482 extends IterativeRobot {
      * This function is called periodically during operator control
      */
     public void teleopPeriodic() {
-        if(isEnabled()){
-        double speedModifier;
-        //Get joystck values
-        double drivestick_x = drivestick.getRawAxis(1);
-        double drivestick_y = drivestick.getRawAxis(2);
-        
-        if(this.checkDemoMode(m_telePeriodicLoops, false)){
-            //If is in demo mode apply speed modifier
-            speedModifier = m_driveSpeedModifier / 100;
-            drivestick_x = drivestick_x * speedModifier;
-            drivestick_y = drivestick_y * speedModifier;
-            //Put joystick values for debugging.
-            SmartDashboard.putNumber("drivestick_x", drivestick_x);
-            SmartDashboard.putNumber("drivestick_y", drivestick_y);
-            if(drivestick_x > 1 || drivestick_y > 1){
-                System.out.println("ERROR!!!!!!!! JOYSTICK VALUE IS GREATOR THAT 1!!! BIG PROBLEM! DISSABLEING ROBOT ");
-                drive.stopMotor();
-                return;
+        if (isEnabled()) {
+            double speedModifier;
+            //Get joystck values
+            double drivestick_x = drivestick.getRawAxis(1);
+            double drivestick_y = drivestick.getRawAxis(2);
+
+            if (this.checkDemoMode(m_telePeriodicLoops, false)) {
+                //If is in demo mode apply speed modifier
+                speedModifier = m_driveSpeedModifier / 100;
+                drivestick_x = drivestick_x * speedModifier;
+                drivestick_y = drivestick_y * speedModifier;
+                //Put joystick values for debugging.
+                SmartDashboard.putNumber("drivestick_x", drivestick_x);
+                SmartDashboard.putNumber("drivestick_y", drivestick_y);
+                //If error in code was made stop the robot and print out error message!
+                if (drivestick_x > 1 || drivestick_y > 1) {
+                    System.out.println("ERROR!!!!!!!! JOYSTICK VALUE IS GREATOR THAT 1 !!! BIG PROBLEM! DISSABLEING ROBOT ");
+                    drive.stopMotor();
+                    return;
+                }
             }
+            drive.arcadeDrive(drivestick_x, drivestick_y);
+            
+            //get pressed/heald states from buttons
+            String m_button_1 = ButtonToggle(drivestick, m_driveStickButtonState, 1);
+            //String m_button_2 = ButtonToggle(drivestick, m_driveStickButtonState, 2);
+            //String m_button_3 = ButtonToggle(drivestick, m_driveStickButtonState, 3);
+
+            if (m_button_1.equalsIgnoreCase("pressed")) {
+                System.out.println("Button 1 pressed!");
+                //Reset cycle count
+                cyclecount = 0;
+            }
+            else if(m_button_1.equalsIgnoreCase("held"))
+            {
+                //Semi auto shooting
+                common.cycle(Shoot, ShootReset, cyclecount);
+            }
+            //Increment cycle count
+            cyclecount++;
+            //feed the watchdog
+            getWatchdog().feed();
+            Timer.delay(0.01);
+        }else{
+            //Feed the watchdog when dissabled
+            getWatchdog().feed();
+            Timer.delay(0.04);
         }
-        drive.arcadeDrive(drivestick_x, drivestick_y);
-        getWatchdog().feed();
-        Timer.delay(0.01);
-        
-    }
     }
     
-    /**
-     * This function is called periodically during test mode
-     */
-    public void testPeriodic() {
     
-    }
-
-
-
     public boolean checkDemoMode(int loops, boolean force) {
         //See if robot is in dissabled mode every 40 loops
         if(loops % 40 == 0 || force){
@@ -177,5 +204,24 @@ public class Team1482 extends IterativeRobot {
             return false;
         }
 
+    }
+    
+    
+    public String ButtonToggle(Joystick currStick, boolean[] buttonPreviouslyPressed, int buttonNum) {
+            if (currStick.getRawButton(buttonNum)) {  //Is button pressed?
+                    if (m_shootStickButtonState[buttonNum]) {
+                        //Button is pressed and was also pressed last cycle
+                        return "held";
+                } else {   //Was this button pressed last cycle
+                        //Set button to now pressed
+                        m_shootStickButtonState[buttonNum] = true;
+                        return "pressed";
+                }
+            } //Button not pressed at all
+            else {
+                    //button is not currentally pressed
+                    m_shootStickButtonState[buttonNum] = false;
+                    return null;
+            }
     }
 }
