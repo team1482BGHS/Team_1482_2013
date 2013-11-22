@@ -46,8 +46,8 @@ public class Team1482 extends IterativeRobot {
     
     //setup talons
     Talon drive_left_back = new Talon(1);
-    Talon drive_right_back = new Talon(2);
-    Talon drive_left_front = new Talon(3);
+    Talon drive_right_back = new Talon(3);
+    Talon drive_left_front = new Talon(2);
     Talon drive_right_front = new Talon(4);
     
     RobotDrive drive = new RobotDrive(drive_left_front, drive_left_back, drive_right_front, drive_right_back);
@@ -63,11 +63,12 @@ public class Team1482 extends IterativeRobot {
     boolean[] m_driveStickButtonState = new boolean[(NUM_JOYSTICK_BUTTONS+1)];
     boolean[] m_shootStickButtonState = new boolean[(NUM_JOYSTICK_BUTTONS+1)];    
     //Pressed or heald
-    String[] driveButtons = new String[16];
-    String[] shootButtons = new String[16];
+    String[] driveButtons = new String[(NUM_JOYSTICK_BUTTONS+1)]; 
+    String[] shootButtons = new String[(NUM_JOYSTICK_BUTTONS+1)];
+    String m_button_1;
     
     //Setup compressor
-    Compressor airCompressor      = new Compressor(1,1);
+    Compressor airCompressor      = new Compressor(8,1);
     public Solenoid Shoot         = new Solenoid(1);
     public Solenoid ShootReset    = new Solenoid(2);
     public Solenoid Lift          = new Solenoid(3);
@@ -95,13 +96,13 @@ public class Team1482 extends IterativeRobot {
         
         /* Uncomment code to invert motor*/
 //        drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
-//        drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+        drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
 //        drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);        
-//        drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);       
+        drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);       
         
         
         System.out.println("RobotInit compleated!");
-        
+        getWatchdog().setEnabled(false);
         
         
     }
@@ -120,57 +121,67 @@ public class Team1482 extends IterativeRobot {
         m_telePeriodicLoops = 0;
         //set experation and enable watchdog
         getWatchdog().setEnabled(true);
-        getWatchdog().setExpiration(0.05);
+        getWatchdog().setExpiration(0.5);
         airCompressor.start();
         
         //Get smartdashboard variables
-        m_demoMode = SmartDashboard.getBoolean("Demo Mode");
-        this.checkDemoMode(m_teleEnabledLoops, true);
+        //m_demoMode = SmartDashboard.getBoolean("Demo Mode");
+        //this.checkDemoMode(m_teleEnabledLoops, true);
     }
     /**
      * This function is called periodically during operator control
      */
+    public void disabledInit() {
+        System.out.println("Dissabled!");
+    }
+    public void disabledPeriodic() {
+        getWatchdog().feed();
+        Timer.delay(0.05);
+    }
     public void teleopPeriodic() {
         if (isEnabled()) {
-            double speedModifier;
-            //Get joystck values
+            //double speedModifier;
+            //Get joystick values
             double drivestick_x = drivestick.getRawAxis(1);
             double drivestick_y = drivestick.getRawAxis(2);
 
-            if (this.checkDemoMode(m_telePeriodicLoops, false)) {
-                //If is in demo mode apply speed modifier
-                speedModifier = m_driveSpeedModifier / 100;
-                drivestick_x = drivestick_x * speedModifier;
-                drivestick_y = drivestick_y * speedModifier;
-                //Put joystick values for debugging.
-                SmartDashboard.putNumber("drivestick_x", drivestick_x);
-                SmartDashboard.putNumber("drivestick_y", drivestick_y);
-                //If error in code was made stop the robot and print out error message!
-                if (drivestick_x > 1 || drivestick_y > 1) {
-                    System.out.println("ERROR!!!!!!!! JOYSTICK VALUE IS GREATOR THAT 1 !!! BIG PROBLEM! DISSABLEING ROBOT ");
-                    drive.stopMotor();
-                    return;
-                }
-            }
+//            if (this.checkDemoMode(m_telePeriodicLoops, false)) {
+//                //If is in demo mode apply speed modifier
+//                speedModifier = m_driveSpeedModifier / 100;
+//                drivestick_x = drivestick_x * speedModifier;
+//                drivestick_y = drivestick_y * speedModifier;
+//                //Put joystick values for debugging.
+//                SmartDashboard.putNumber("drivestick_x", drivestick_x);
+//                SmartDashboard.putNumber("drivestick_y", drivestick_y);
+//                //If error in code was made stop the robot and print out error message!
+//                if (drivestick_x > 1 || drivestick_y > 1) {
+//                    System.out.println("ERROR!!!!!!!! JOYSTICK VALUE IS GREATOR THAT 1 !!! BIG PROBLEM! DISSABLEING ROBOT ");
+//                    drive.stopMotor();
+//                    return;
+//                }
+//            }
             drive.arcadeDrive(drivestick_x, drivestick_y);
             
             //get pressed/heald states from buttons
-            String m_button_1 = ButtonToggle(drivestick, m_driveStickButtonState, 1);
+            //String m_button_1 = ButtonToggle(drivestick, m_driveStickButtonState, 1);
+            
+            m_button_1 = null;
             //String m_button_2 = ButtonToggle(drivestick, m_driveStickButtonState, 2);
             //String m_button_3 = ButtonToggle(drivestick, m_driveStickButtonState, 3);
 
-            if (m_button_1.equalsIgnoreCase("pressed")) {
-                System.out.println("Button 1 pressed!");
-                //Reset cycle count
-                cyclecount = 0;
-            }
-            else if(m_button_1.equalsIgnoreCase("held"))
-            {
-                //Semi auto shooting
-                common.cycle(Shoot, ShootReset, cyclecount);
-            }
+//            if (m_button_1.equalsIgnoreCase("pressed")) {
+//                System.out.println("Button 1 pressed!");
+//                //Reset cycle count
+//                cyclecount = 0;
+//            }
+//            else if(m_button_1.equalsIgnoreCase("held"))
+//            {
+//                //Semi auto shooting
+//                common.cycle(Shoot, ShootReset, cyclecount);
+//                cyclecount++;
+//            }
             //Increment cycle count
-            cyclecount++;
+
             //feed the watchdog
             getWatchdog().feed();
             Timer.delay(0.01);
