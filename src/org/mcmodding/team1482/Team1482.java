@@ -37,6 +37,7 @@ public class Team1482 extends IterativeRobot {
     int m_teleEnabledLoops;
     int m_dsPacketsReceivedInCurrentSecond;    
     int cyclecount;
+    boolean state = false;
     
     //Set up demo mode variables
     boolean m_demoMode = false;
@@ -65,7 +66,7 @@ public class Team1482 extends IterativeRobot {
     //Pressed or heald
     String[] driveButtons = new String[(NUM_JOYSTICK_BUTTONS+1)]; 
     String[] shootButtons = new String[(NUM_JOYSTICK_BUTTONS+1)];
-    String m_button_1;
+    boolean m_button_1;
     
     //Setup compressor
     Compressor airCompressor      = new Compressor(8,1);
@@ -165,7 +166,7 @@ public class Team1482 extends IterativeRobot {
             //get pressed/heald states from buttons
             //String m_button_1 = ButtonToggle(drivestick, m_driveStickButtonState, 1);
             
-            m_button_1 = null;
+            m_button_1 = drivestick.getRawButton(1);
             //String m_button_2 = ButtonToggle(drivestick, m_driveStickButtonState, 2);
             //String m_button_3 = ButtonToggle(drivestick, m_driveStickButtonState, 3);
 
@@ -181,7 +182,20 @@ public class Team1482 extends IterativeRobot {
 //                cyclecount++;
 //            }
             //Increment cycle count
-
+            
+            //Button press and not pressed before
+            if(m_button_1 && !m_driveStickButtonState[1]){
+                System.out.println("Pressed!");
+                m_driveStickButtonState[1] = true;
+                //Lift.set(true);
+                //LiftReset.set(false);
+                state = common.liftSet(state, Lift, LiftReset);
+            }else if(!m_button_1 && m_driveStickButtonState[1]){
+                System.out.println("Reseting button!");
+                m_driveStickButtonState[1] = false;
+                //Lift.set(false);
+                //LiftReset.set(true);
+            }
             //feed the watchdog
             getWatchdog().feed();
             Timer.delay(0.01);

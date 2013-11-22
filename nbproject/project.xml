@@ -43,6 +43,10 @@
                 <action name="javadoc">
                     <target>javadoc</target>
                 </action>
+                <action name="profile">
+                    <script>nbproject/ide-file-targets.xml</script>
+                    <target>profile-nb</target>
+                </action>
             </ide-actions>
             <export>
                 <type>folder</type>
@@ -75,6 +79,7 @@
                         <target>jar-deploy</target>
                     </action>
                     <separator/>
+                    <ide-action name="profile"/>
                 </context-menu>
             </view>
             <subprojects/>
