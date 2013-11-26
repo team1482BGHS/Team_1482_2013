@@ -163,13 +163,7 @@ public class Team1482 extends IterativeRobot {
 //            }
             drive.arcadeDrive(drivestick_x, drivestick_y);
             
-            //get pressed/heald states from buttons
-            //String m_button_1 = ButtonToggle(drivestick, m_driveStickButtonState, 1);
-            
             m_button_1 = drivestick.getRawButton(1);
-            //String m_button_2 = ButtonToggle(drivestick, m_driveStickButtonState, 2);
-            //String m_button_3 = ButtonToggle(drivestick, m_driveStickButtonState, 3);
-
 //            if (m_button_1.equalsIgnoreCase("pressed")) {
 //                System.out.println("Button 1 pressed!");
 //                //Reset cycle count
@@ -186,15 +180,13 @@ public class Team1482 extends IterativeRobot {
             //Button press and not pressed before
             if(m_button_1 && !m_driveStickButtonState[1]){
                 System.out.println("Pressed!");
+                //Set the sate of the button
                 m_driveStickButtonState[1] = true;
-                //Lift.set(true);
-                //LiftReset.set(false);
+                //Extend/Retract lifter
                 state = common.liftSet(state, Lift, LiftReset);
             }else if(!m_button_1 && m_driveStickButtonState[1]){
                 System.out.println("Reseting button!");
                 m_driveStickButtonState[1] = false;
-                //Lift.set(false);
-                //LiftReset.set(true);
             }
             //feed the watchdog
             getWatchdog().feed();
@@ -230,23 +222,3 @@ public class Team1482 extends IterativeRobot {
         }
 
     }
-    
-    
-    public String ButtonToggle(Joystick currStick, boolean[] buttonPreviouslyPressed, int buttonNum) {
-            if (currStick.getRawButton(buttonNum)) {  //Is button pressed?
-                    if (m_shootStickButtonState[buttonNum]) {
-                        //Button is pressed and was also pressed last cycle
-                        return "held";
-                } else {   //Was this button pressed last cycle
-                        //Set button to now pressed
-                        m_shootStickButtonState[buttonNum] = true;
-                        return "pressed";
-                }
-            } //Button not pressed at all
-            else {
-                    //button is not currentally pressed
-                    m_shootStickButtonState[buttonNum] = false;
-                    return null;
-            }
-    }
-}
