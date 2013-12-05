@@ -7,6 +7,7 @@
 package org.mcmodding.team1482;
 
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.Talon;
 
 /**
  *
@@ -40,7 +41,18 @@ public class common {
                 count = 0;
         }
 
-    }    
+    }
+    public static boolean motor(boolean state, Talon motor){
+        if(!state){
+            motor.set(-1);
+            System.out.println("Turned on motor!");
+            return true;
+        }else{
+            motor.set(0);
+            System.out.println("Truned off motor!");
+            return false;
+        }
+    }
     
     
     
