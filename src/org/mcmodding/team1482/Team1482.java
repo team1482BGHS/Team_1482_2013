@@ -38,6 +38,8 @@ public class Team1482 extends IterativeRobot {
     int m_dsPacketsReceivedInCurrentSecond;    
     int cyclecount;
     boolean state = false;
+    boolean state_shoot = false;
+    boolean state_motor = false;
     
     //Set up demo mode variables
     boolean m_demoMode = false;
@@ -50,6 +52,7 @@ public class Team1482 extends IterativeRobot {
     Talon drive_right_back = new Talon(3);
     Talon drive_left_front = new Talon(2);
     Talon drive_right_front = new Talon(4);
+    Talon shoot             = new Talon(10);
     
     RobotDrive drive = new RobotDrive(drive_left_front, drive_left_back, drive_right_front, drive_right_back);
     
@@ -67,6 +70,8 @@ public class Team1482 extends IterativeRobot {
     String[] driveButtons = new String[(NUM_JOYSTICK_BUTTONS+1)]; 
     String[] shootButtons = new String[(NUM_JOYSTICK_BUTTONS+1)];
     boolean m_button_1;
+    boolean m_button_2;
+    boolean m_button_3;
     
     //Setup compressor
     Compressor airCompressor      = new Compressor(8,1);
@@ -145,6 +150,7 @@ public class Team1482 extends IterativeRobot {
             //Get joystick values
             double drivestick_x = drivestick.getRawAxis(1);
             double drivestick_y = drivestick.getRawAxis(2);
+            
 
 //            if (this.checkDemoMode(m_telePeriodicLoops, false)) {
 //                //If is in demo mode apply speed modifier
@@ -164,6 +170,8 @@ public class Team1482 extends IterativeRobot {
             drive.arcadeDrive(drivestick_x, drivestick_y);
             
             m_button_1 = drivestick.getRawButton(1);
+            m_button_2 = drivestick.getRawButton(2);
+            m_button_3 = drivestick.getRawButton(3);
 //            if (m_button_1.equalsIgnoreCase("pressed")) {
 //                System.out.println("Button 1 pressed!");
 //                //Reset cycle count
@@ -187,6 +195,22 @@ public class Team1482 extends IterativeRobot {
             }else if(!m_button_1 && m_driveStickButtonState[1]){
                 System.out.println("Reseting button!");
                 m_driveStickButtonState[1] = false;
+            }
+            if(m_button_2&& !m_driveStickButtonState[2]){
+                System.out.println("Pressed 2");
+                state_shoot = common.liftSet(state_shoot, Shoot, ShootReset);
+                m_driveStickButtonState[2] = true;
+            }else if(!m_button_2 && m_driveStickButtonState[2]){
+                System.out.println("Reset 2");
+                m_driveStickButtonState[2] = false;
+            }
+            if(m_button_3&& !m_driveStickButtonState[3]){
+                System.out.println("Pressed 3");
+                state_motor = common.motor(state_motor, shoot);
+                m_driveStickButtonState[3] = true;
+            }else if(!m_button_3 && m_driveStickButtonState[3]){
+                System.out.println("Reset 3");
+                m_driveStickButtonState[3] = false;
             }
             //feed the watchdog
             getWatchdog().feed();
@@ -222,3 +246,4 @@ public class Team1482 extends IterativeRobot {
         }
 
     }
+}
