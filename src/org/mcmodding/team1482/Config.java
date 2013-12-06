@@ -9,6 +9,7 @@ package org.mcmodding.team1482;
  * @author student
  */
 public class Config {
+    //Variabled for transmission speed
     public static final int GEARUP = 3700;
     public static final int GEARDOWN = 2800;
 }

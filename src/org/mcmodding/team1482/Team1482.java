@@ -26,10 +26,6 @@ import edu.wpi.first.wpilibj.Encoder;
  * directory.
  */
 public class Team1482 extends IterativeRobot {
-    /**
-     * This function is run when the robot is first started up and should be
-     * used for any initialization code.
-     */
     //timing ints
     int m_disabledPeriodicLoops;
     int m_autoPeriodicLoops;
@@ -54,33 +50,38 @@ public class Team1482 extends IterativeRobot {
     Talon drive_left_front = new Talon(2);
     Talon drive_right_front = new Talon(4);
     Talon shoot             = new Talon(10);
-    
+    //Create drive object
     RobotDrive drive = new RobotDrive(drive_left_front, drive_left_back, drive_right_front, drive_right_back);
     
+
+
+    //Create new encoders
     Encoder left = new Encoder(1, 2);
-    
+    //Encoder related variables
+    double LeftSpeed; //Encoder speed
+    double LeftAbsSpeed; //Absolute encoder speed
+    int gear;  //Current gear
     
     
     //Joystick setup
     Joystick drivestick = new Joystick(1);
     Joystick shootstick = new Joystick(2);
+    //Number of joystick buttons
     public static int NUM_JOYSTICK_BUTTONS = 16;
-    //joystick buttons
+    //Array to set if button was pressed last itteration
     boolean[] m_driveStickButtonState = new boolean[(NUM_JOYSTICK_BUTTONS+1)];
     boolean[] m_shootStickButtonState = new boolean[(NUM_JOYSTICK_BUTTONS+1)];    
-    //Pressed or heald
+    //Array to set value of button
     boolean[] driveButtons = new boolean[(NUM_JOYSTICK_BUTTONS+1)]; 
     boolean[] shootButtons = new boolean[(NUM_JOYSTICK_BUTTONS+1)];
     
     //Setup compressor
     Compressor airCompressor      = new Compressor(8,1);
+    //Setup solonides
     public Solenoid Shoot         = new Solenoid(1);
     public Solenoid ShootReset    = new Solenoid(2);
     public Solenoid Lift          = new Solenoid(3);
     public Solenoid LiftReset     = new Solenoid(4);
-    double LeftSpeed;
-    double LeftAbsSpeed;
-    int gear;
 
     
     public Team1482() {
@@ -106,13 +107,15 @@ public class Team1482 extends IterativeRobot {
 //        drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
         drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
 //        drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);        
-        drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);       
-        
+        drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);    
+        //Start encoders
+        left.start();
+        //Set distance ratio
+        left.setDistancePerPulse(2);        
         
         System.out.println("RobotInit compleated!");
         getWatchdog().setEnabled(false);
-        left.start();
-        left.setDistancePerPulse(2);
+
         
         
     }
@@ -122,9 +125,10 @@ public class Team1482 extends IterativeRobot {
      */
     public void autonomousInit() {
         System.out.println("There is no autonomous code!");
+        //TODO: Make automous code!
     }
 
-    public void teleopInit() {
+    public void teleopInit() {   //Called at the start of teleop
         System.out.println("Starting Teleop!");
         //Reset loop counters
         m_teleEnabledLoops = 0;
@@ -133,7 +137,9 @@ public class Team1482 extends IterativeRobot {
         //set experation and enable watchdog
         getWatchdog().setEnabled(true);
         getWatchdog().setExpiration(0.5);
+        //Start compresser
         airCompressor.start();
+        //Set defualt values for gear shifter
         Lift.set(true);
         LiftReset.set(false);
         gear = 1;
@@ -142,74 +148,53 @@ public class Team1482 extends IterativeRobot {
         //m_demoMode = SmartDashboard.getBoolean("Demo Mode");
         //this.checkDemoMode(m_teleEnabledLoops, true);
     }
-    /**
-     * This function is called periodically during operator control
-     */
-    public void disabledInit() {
+    public void disabledInit() { //Called when dissabled
+        
         System.out.println("Dissabled!");
     }
-    public void disabledPeriodic() {
+    public void disabledPeriodic() { //called throughout when dissabled
         getWatchdog().feed();
-        Timer.delay(0.05);
+        Timer.delay(0.07);
     }
-    public void teleopPeriodic() {
-        if (isEnabled()) {
-            //double speedModifier;
+    public void teleopPeriodic() {  //Called durring operated control
+        if (isEnabled()) {  //If the robot is enabled
             //Get joystick values
             double drivestick_x = drivestick.getRawAxis(1);
             double drivestick_y = drivestick.getRawAxis(2);
-            LeftSpeed = left.getRate();
-            LeftAbsSpeed = Math.abs(LeftSpeed);
-            SmartDashboard.putNumber("Left speed", LeftSpeed);
             
-
-//            if (this.checkDemoMode(m_telePeriodicLoops, false)) {
-//                //If is in demo mode apply speed modifier
-//                speedModifier = m_driveSpeedModifier / 100;
-//                drivestick_x = drivestick_x * speedModifier;
-//                drivestick_y = drivestick_y * speedModifier;
-//                //Put joystick values for debugging.
-//                SmartDashboard.putNumber("drivestick_x", drivestick_x);
-//                SmartDashboard.putNumber("drivestick_y", drivestick_y);
-//                //If error in code was made stop the robot and print out error message!
-//                if (drivestick_x > 1 || drivestick_y > 1) {
-//                    System.out.println("ERROR!!!!!!!! JOYSTICK VALUE IS GREATOR THAT 1 !!! BIG PROBLEM! DISSABLEING ROBOT ");
-//                    drive.stopMotor();
-//                    return;
-//                }
-//            }
-            if(gear == 1 && LeftAbsSpeed > Config.GEARUP){
+            //Get speed from encoder
+            LeftSpeed = left.getRate();
+            LeftAbsSpeed = Math.abs(LeftSpeed); //Get the absolute value of encoder value
+            SmartDashboard.putNumber("Left speed", LeftSpeed); //Display speed on dashboard
+            
+            
+            if(gear == 1 && LeftAbsSpeed > Config.GEARUP){ //Switch gear up if is in gear one and is above configured speed
                 //Switch to gear 2
                 Lift.set(false);
                 LiftReset.set(true);
                 System.out.println("Swited to gear 2!");
                 gear = 2;
                 
-            }else if(gear ==2 && LeftAbsSpeed < Config.GEARDOWN){
+            }else if(gear ==2 && LeftAbsSpeed < Config.GEARDOWN){  //Gear down if is in gear 2 and is below configured speed
+                //Switch to gear 1
                 Lift.set(true);
                 LiftReset.set(false);
                 System.out.println("Switched to gear 1!");
                 gear = 1;
             }
+            
+            
+            //Drive motors based on joystick values
             drive.arcadeDrive(drivestick_x, drivestick_y);
+            //Get values of joystick buttons
             
             shootButtons[1] = drivestick.getRawButton(1);
             shootButtons[2] = drivestick.getRawButton(2);
             shootButtons[3] = drivestick.getRawButton(3);
-//            if (m_button_1.equalsIgnoreCase("pressed")) {
-//                System.out.println("Button 1 pressed!");
-//                //Reset cycle count
-//                cyclecount = 0;
-//            }
-//            else if(m_button_1.equalsIgnoreCase("held"))
-//            {
-//                //Semi auto shooting
-//                common.cycle(Shoot, ShootReset, cyclecount);
-//                cyclecount++;
-//            }
-            //Increment cycle count
             
             //Button press and not pressed before
+            
+            /* BUTTON ONE CODE */
             if(shootButtons[1] && !m_driveStickButtonState[1]){
                 System.out.println("Pressed!");
                 //Set the sate of the button
@@ -221,22 +206,34 @@ public class Team1482 extends IterativeRobot {
                 System.out.println("Reseting button!");
                 m_driveStickButtonState[1] = false;
             }
+            
+            
+            /* BUTTON TWO CODE */
             if(shootButtons[2]&& !m_driveStickButtonState[2]){
                 System.out.println("Pressed 2");
+                //toggle piston
                 state_shoot = common.liftSet(state_shoot, Shoot, ShootReset);
                 m_driveStickButtonState[2] = true;
             }else if(!shootButtons[2] && m_driveStickButtonState[2]){
                 System.out.println("Reset 2");
+                //Reset variable
                 m_driveStickButtonState[2] = false;
             }
+            
+            
+            /* BUTTON THREE CODE */
             if(shootButtons[3]&& !m_driveStickButtonState[3]){
                 System.out.println("Pressed 3");
+                //Turn motor on/off
                 state_motor = common.motor(state_motor, shoot);
                 m_driveStickButtonState[3] = true;
             }else if(!shootButtons[3] && m_driveStickButtonState[3]){
                 System.out.println("Reset 3");
+                //Reset variable
                 m_driveStickButtonState[3] = false;
             }
+            
+            
             //feed the watchdog
             getWatchdog().feed();
             Timer.delay(0.01);
