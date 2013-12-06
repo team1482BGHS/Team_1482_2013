@@ -9,7 +9,6 @@ package org.mcmodding.team1482;
 
 
 import edu.wpi.first.wpilibj.Compressor;
-import edu.wpi.first.wpilibj.DriverStationLCD;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
@@ -17,6 +16,7 @@ import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.Encoder;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -37,7 +37,8 @@ public class Team1482 extends IterativeRobot {
     int m_teleEnabledLoops;
     int m_dsPacketsReceivedInCurrentSecond;    
     int cyclecount;
-    boolean state = false;
+    //States for 
+    boolean state_lift = false;
     boolean state_shoot = false;
     boolean state_motor = false;
     
@@ -56,6 +57,7 @@ public class Team1482 extends IterativeRobot {
     
     RobotDrive drive = new RobotDrive(drive_left_front, drive_left_back, drive_right_front, drive_right_back);
     
+    Encoder left = new Encoder(1, 2);
     
     
     
@@ -67,11 +69,8 @@ public class Team1482 extends IterativeRobot {
     boolean[] m_driveStickButtonState = new boolean[(NUM_JOYSTICK_BUTTONS+1)];
     boolean[] m_shootStickButtonState = new boolean[(NUM_JOYSTICK_BUTTONS+1)];    
     //Pressed or heald
-    String[] driveButtons = new String[(NUM_JOYSTICK_BUTTONS+1)]; 
-    String[] shootButtons = new String[(NUM_JOYSTICK_BUTTONS+1)];
-    boolean m_button_1;
-    boolean m_button_2;
-    boolean m_button_3;
+    boolean[] driveButtons = new boolean[(NUM_JOYSTICK_BUTTONS+1)]; 
+    boolean[] shootButtons = new boolean[(NUM_JOYSTICK_BUTTONS+1)];
     
     //Setup compressor
     Compressor airCompressor      = new Compressor(8,1);
@@ -79,7 +78,10 @@ public class Team1482 extends IterativeRobot {
     public Solenoid ShootReset    = new Solenoid(2);
     public Solenoid Lift          = new Solenoid(3);
     public Solenoid LiftReset     = new Solenoid(4);
-    
+    double LeftSpeed;
+    double LeftAbsSpeed;
+    int gear;
+
     
     public Team1482() {
         System.out.println("Starting constructor!");
@@ -88,8 +90,8 @@ public class Team1482 extends IterativeRobot {
             //Set default vales for jpystick button arrays
             m_driveStickButtonState[buttonNum] = false;
             m_shootStickButtonState[buttonNum] = false;  
-            driveButtons[buttonNum] = null;
-            shootButtons[buttonNum] = null;
+            driveButtons[buttonNum] = false;
+            shootButtons[buttonNum] = false;
         }        
     }
     
@@ -109,6 +111,8 @@ public class Team1482 extends IterativeRobot {
         
         System.out.println("RobotInit compleated!");
         getWatchdog().setEnabled(false);
+        left.start();
+        left.setDistancePerPulse(2);
         
         
     }
@@ -125,10 +129,14 @@ public class Team1482 extends IterativeRobot {
         //Reset loop counters
         m_teleEnabledLoops = 0;
         m_telePeriodicLoops = 0;
+        
         //set experation and enable watchdog
         getWatchdog().setEnabled(true);
         getWatchdog().setExpiration(0.5);
         airCompressor.start();
+        Lift.set(true);
+        LiftReset.set(false);
+        gear = 1;
         
         //Get smartdashboard variables
         //m_demoMode = SmartDashboard.getBoolean("Demo Mode");
@@ -150,6 +158,9 @@ public class Team1482 extends IterativeRobot {
             //Get joystick values
             double drivestick_x = drivestick.getRawAxis(1);
             double drivestick_y = drivestick.getRawAxis(2);
+            LeftSpeed = left.getRate();
+            LeftAbsSpeed = Math.abs(LeftSpeed);
+            SmartDashboard.putNumber("Left speed", LeftSpeed);
             
 
 //            if (this.checkDemoMode(m_telePeriodicLoops, false)) {
@@ -167,11 +178,24 @@ public class Team1482 extends IterativeRobot {
 //                    return;
 //                }
 //            }
+            if(gear == 1 && LeftAbsSpeed > Config.GEARUP){
+                //Switch to gear 2
+                Lift.set(false);
+                LiftReset.set(true);
+                System.out.println("Swited to gear 2!");
+                gear = 2;
+                
+            }else if(gear ==2 && LeftAbsSpeed < Config.GEARDOWN){
+                Lift.set(true);
+                LiftReset.set(false);
+                System.out.println("Switched to gear 1!");
+                gear = 1;
+            }
             drive.arcadeDrive(drivestick_x, drivestick_y);
             
-            m_button_1 = drivestick.getRawButton(1);
-            m_button_2 = drivestick.getRawButton(2);
-            m_button_3 = drivestick.getRawButton(3);
+            shootButtons[1] = drivestick.getRawButton(1);
+            shootButtons[2] = drivestick.getRawButton(2);
+            shootButtons[3] = drivestick.getRawButton(3);
 //            if (m_button_1.equalsIgnoreCase("pressed")) {
 //                System.out.println("Button 1 pressed!");
 //                //Reset cycle count
@@ -186,29 +210,30 @@ public class Team1482 extends IterativeRobot {
             //Increment cycle count
             
             //Button press and not pressed before
-            if(m_button_1 && !m_driveStickButtonState[1]){
+            if(shootButtons[1] && !m_driveStickButtonState[1]){
                 System.out.println("Pressed!");
                 //Set the sate of the button
                 m_driveStickButtonState[1] = true;
                 //Extend/Retract lifter
-                state = common.liftSet(state, Lift, LiftReset);
-            }else if(!m_button_1 && m_driveStickButtonState[1]){
+                state_lift = common.liftSet(state_lift, Lift, LiftReset);
+                gear = 1;
+            }else if(!shootButtons[1] && m_driveStickButtonState[1]){
                 System.out.println("Reseting button!");
                 m_driveStickButtonState[1] = false;
             }
-            if(m_button_2&& !m_driveStickButtonState[2]){
+            if(shootButtons[2]&& !m_driveStickButtonState[2]){
                 System.out.println("Pressed 2");
                 state_shoot = common.liftSet(state_shoot, Shoot, ShootReset);
                 m_driveStickButtonState[2] = true;
-            }else if(!m_button_2 && m_driveStickButtonState[2]){
+            }else if(!shootButtons[2] && m_driveStickButtonState[2]){
                 System.out.println("Reset 2");
                 m_driveStickButtonState[2] = false;
             }
-            if(m_button_3&& !m_driveStickButtonState[3]){
+            if(shootButtons[3]&& !m_driveStickButtonState[3]){
                 System.out.println("Pressed 3");
                 state_motor = common.motor(state_motor, shoot);
                 m_driveStickButtonState[3] = true;
-            }else if(!m_button_3 && m_driveStickButtonState[3]){
+            }else if(!shootButtons[3] && m_driveStickButtonState[3]){
                 System.out.println("Reset 3");
                 m_driveStickButtonState[3] = false;
             }
