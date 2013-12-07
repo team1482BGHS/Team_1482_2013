@@ -56,10 +56,13 @@ public class Team1482 extends IterativeRobot {
 
 
     //Create new encoders
-    Encoder left = new Encoder(1, 2);
+    Encoder encoderLeft = new Encoder(1, 2);
+    Encoder encoderRight = new Encoder(3, 4);
     //Encoder related variables
     double LeftSpeed; //Encoder speed
     double LeftAbsSpeed; //Absolute encoder speed
+    double RightSpeed;
+    double RightAbsSpeed;
     int gear;  //Current gear
     
     
@@ -74,6 +77,8 @@ public class Team1482 extends IterativeRobot {
     //Array to set value of button
     boolean[] driveButtons = new boolean[(NUM_JOYSTICK_BUTTONS+1)]; 
     boolean[] shootButtons = new boolean[(NUM_JOYSTICK_BUTTONS+1)];
+    
+    double joystickYaw;
     
     //Setup compressor
     Compressor airCompressor      = new Compressor(8,1);
@@ -109,9 +114,9 @@ public class Team1482 extends IterativeRobot {
 //        drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);        
         drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);    
         //Start encoders
-        left.start();
+        encoderLeft.start();
         //Set distance ratio
-        left.setDistancePerPulse(2);        
+        encoderLeft.setDistancePerPulse(2);        
         
         System.out.println("RobotInit compleated!");
         getWatchdog().setEnabled(false);
@@ -163,12 +168,16 @@ public class Team1482 extends IterativeRobot {
             double drivestick_y = drivestick.getRawAxis(2);
             
             //Get speed from encoder
-            LeftSpeed = left.getRate();
+            LeftSpeed = encoderLeft.getRate();
+            RightSpeed = encoderRight.getRate();
             LeftAbsSpeed = Math.abs(LeftSpeed); //Get the absolute value of encoder value
+            RightAbsSpeed = Math.abs(RightSpeed);
+            joystickYaw = Math.abs(drivestick_y);
+            
             SmartDashboard.putNumber("Left speed", LeftSpeed); //Display speed on dashboard
+            SmartDashboard.putNumber("Right speed", RightSpeed); //Display speed on dashboard
             
-            
-            if(gear == 1 && LeftAbsSpeed > Config.GEARUP){ //Switch gear up if is in gear one and is above configured speed
+            if(gear == 1 && LeftAbsSpeed > Config.GEARUP && joystickYaw <= Config.STRAIGHTDEADZONE){ //Switch gear up if is in gear one and is above configured speed
                 //Switch to gear 2
                 Lift.set(false);
                 LiftReset.set(true);

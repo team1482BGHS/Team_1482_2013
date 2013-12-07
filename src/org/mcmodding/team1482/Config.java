@@ -12,4 +12,7 @@ public class Config {
     //Variabled for transmission speed
     public static final int GEARUP = 3700;
     public static final int GEARDOWN = 2800;
+    public static final double STRAIGHTDEADZONE = 0.1; //Dead zone to be considered to be driveing "straight" enfough.
+    
+    
 }
