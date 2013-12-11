@@ -17,6 +17,9 @@ import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.camera.AxisCamera;
+import edu.wpi.first.wpilibj.image.CriteriaCollection;
+import edu.wpi.first.wpilibj.image.NIVision;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -64,6 +67,7 @@ public class Team1482 extends IterativeRobot {
     double RightSpeed;
     double RightAbsSpeed;
     int gear;  //Current gear
+    int test; 
     
     
     //Joystick setup
@@ -87,11 +91,14 @@ public class Team1482 extends IterativeRobot {
     public Solenoid ShootReset    = new Solenoid(2);
     public Solenoid Lift          = new Solenoid(3);
     public Solenoid LiftReset     = new Solenoid(4);
+    //Our vision object
 
+    AxisCamera camera;          // the axis camera object (connected to the switch)
+    CriteriaCollection cc;      // the criteria for doing the particle filter operation
     
     public Team1482() {
         System.out.println("Starting constructor!");
-
+ 
         for (int buttonNum = 1; buttonNum <= NUM_JOYSTICK_BUTTONS; buttonNum++) {
             //Set default vales for jpystick button arrays
             m_driveStickButtonState[buttonNum] = false;
@@ -102,8 +109,13 @@ public class Team1482 extends IterativeRobot {
     }
     
     public void robotInit() {
+        camera = AxisCamera.getInstance();  // get an instance of the camera
+        cc = new CriteriaCollection();      // create the criteria for the particle filter
+        cc.addCriteria(NIVision.MeasurementType.IMAQ_MT_AREA, 500, 65535, false);
         System.out.println("Starting RobotInit");
         //get smartdashboard variables
+
+        
         SmartDashboard.putBoolean("Lift State", false);
         SmartDashboard.getBoolean("Demo Mode", false);
         SmartDashboard.getBoolean("Enable shooter?" , true);
@@ -200,6 +212,7 @@ public class Team1482 extends IterativeRobot {
             shootButtons[1] = drivestick.getRawButton(1);
             shootButtons[2] = drivestick.getRawButton(2);
             shootButtons[3] = drivestick.getRawButton(3);
+            shootButtons[4] = drivestick.getRawButton(4);
             
             //Button press and not pressed before
             
@@ -240,6 +253,16 @@ public class Team1482 extends IterativeRobot {
                 System.out.println("Reset 3");
                 //Reset variable
                 m_driveStickButtonState[3] = false;
+            }
+            
+            if(shootButtons[4]&& !m_driveStickButtonState[4]){
+                System.out.println("Pressed 4");
+                //Turn motor on/of
+                m_driveStickButtonState[4] = true;
+            }else if(!shootButtons[4] && m_driveStickButtonState[4]){
+                System.out.println("Reset 4");
+                //Reset variable
+                m_driveStickButtonState[4] = false;
             }
             
             
