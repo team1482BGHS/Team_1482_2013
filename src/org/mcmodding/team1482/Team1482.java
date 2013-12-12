@@ -67,7 +67,9 @@ public class Team1482 extends IterativeRobot {
     double RightSpeed;
     double RightAbsSpeed;
     int gear;  //Current gear
-    int test; 
+    
+    double modifyJoystickSpeed;
+    boolean rpmMatching;
     
     
     //Joystick setup
@@ -179,6 +181,28 @@ public class Team1482 extends IterativeRobot {
             double drivestick_x = drivestick.getRawAxis(1);
             double drivestick_y = drivestick.getRawAxis(2);
             
+            if(rpmMatching){ //If is switching RPM
+                if(gear == 2){ //See if robot is in gear 2
+                    //Speed matching code here
+                    if(modifyJoystickSpeed >= 1){ //Finished speeding up
+                        modifyJoystickSpeed = 1;  //Set back to normal
+                        System.out.println("Finished speeding up!");
+                        SmartDashboard.putNumber("Speed modifier", modifyJoystickSpeed);
+                        rpmMatching = false;
+                        
+                    }else{
+                        modifyJoystickSpeed = modifyJoystickSpeed + Config.GEARUPDELAY;
+                        SmartDashboard.putNumber("Speed modifier", modifyJoystickSpeed);
+                        drivestick_x = drivestick_x * modifyJoystickSpeed; //Set speed based on modifier
+                        drivestick_y = drivestick_y * modifyJoystickSpeed; //Set speed based on modifier
+                    }
+                }else{ //Robot is no longer in gear 2, switch back to normal
+                    System.out.println("Error! Not in gear 2 anymore!");
+                    rpmMatching = false;
+                    modifyJoystickSpeed = 1;
+                }
+            }
+            
             //Get speed from encoder
             LeftSpeed = encoderLeft.getRate();
             RightSpeed = encoderRight.getRate();
@@ -195,6 +219,9 @@ public class Team1482 extends IterativeRobot {
                 LiftReset.set(true);
                 System.out.println("Swited to gear 2!");
                 gear = 2;
+                //Code to slow motor when switching gears.
+                modifyJoystickSpeed = Config.GEARCHANGESPEEDDEFAULT;
+                rpmMatching = true;
                 
             }else if(gear ==2 && LeftAbsSpeed < Config.GEARDOWN){  //Gear down if is in gear 2 and is below configured speed
                 //Switch to gear 1
@@ -255,15 +282,6 @@ public class Team1482 extends IterativeRobot {
                 m_driveStickButtonState[3] = false;
             }
             
-            if(shootButtons[4]&& !m_driveStickButtonState[4]){
-                System.out.println("Pressed 4");
-                //Turn motor on/of
-                m_driveStickButtonState[4] = true;
-            }else if(!shootButtons[4] && m_driveStickButtonState[4]){
-                System.out.println("Reset 4");
-                //Reset variable
-                m_driveStickButtonState[4] = false;
-            }
             
             
             //feed the watchdog
