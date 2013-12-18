@@ -16,31 +16,27 @@ import edu.wpi.first.wpilibj.image.NIVisionException;
  * @author student
  */
 public class vision {
-
-    AxisCamera camera;
-    CriteriaCollection cc; 
-
-    vision() {
-        try{
-        camera = AxisCamera.getInstance();
-        }catch(NIVisionException ex){
-            ex.printStackTrace();
-        }
-        cc = new CriteriaCollection();      // create the criteria for the particle filter
-        cc.addCriteria(NIVision.MeasurementType.IMAQ_MT_AREA, 500, 65535, false);
-
-    }
-
-    public void getImage() {
-        try {
-            ColorImage image = camera.getImage();
-            image.write("/Camera_Image.bmp");
-        } catch (NIVisionException ex) {
-            ex.printStackTrace();
-        } catch (AxisCameraException ex) {
-            ex.printStackTrace();
-        }
-
-    }
+//
+//    AxisCamera camera;
+//    CriteriaCollection cc; 
+//
+//    vision() {
+//        
+//        cc = new CriteriaCollection();      // create the criteria for the particle filter
+//        cc.addCriteria(NIVision.MeasurementType.IMAQ_MT_AREA, 500, 65535, false);
+//
+//    }
+//
+//    public void getImage() {
+//        try {
+//            ColorImage image = camera.getImage();
+//            image.write("/Camera_Image.bmp");
+//        } catch (NIVisionException ex) {
+//            ex.printStackTrace();
+//        } catch (AxisCameraException ex) {
+//            ex.printStackTrace();
+//        }
+//
+//    }
 }
    

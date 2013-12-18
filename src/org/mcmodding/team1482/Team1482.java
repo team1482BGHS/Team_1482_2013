@@ -83,6 +83,9 @@ public class Team1482 extends IterativeRobot {
     //Array to set value of button
     boolean[] driveButtons = new boolean[(NUM_JOYSTICK_BUTTONS+1)]; 
     boolean[] shootButtons = new boolean[(NUM_JOYSTICK_BUTTONS+1)];
+    //Arrays are one longer than number of buttons to avoid indexing confusion
+    //(ie: the number of the button is the same as its index in the array. The
+    // first space, index 0, is never used.
     
     double joystickYaw;
     
@@ -95,25 +98,28 @@ public class Team1482 extends IterativeRobot {
     public Solenoid LiftReset     = new Solenoid(4);
     //Our vision object
 
-    AxisCamera camera;          // the axis camera object (connected to the switch)
-    CriteriaCollection cc;      // the criteria for doing the particle filter operation
-    
+    //AxisCamera camera;          // the axis camera object (connected to the switch)
+    //CriteriaCollection cc;      // the criteria for doing the particle filter operation
+    double combinedSpeed;
+
     public Team1482() {
         System.out.println("Starting constructor!");
- 
-        for (int buttonNum = 1; buttonNum <= NUM_JOYSTICK_BUTTONS; buttonNum++) {
+        
+        for (int buttonNum = 1; buttonNum > NUM_JOYSTICK_BUTTONS; buttonNum++) {
             //Set default vales for jpystick button arrays
             m_driveStickButtonState[buttonNum] = false;
             m_shootStickButtonState[buttonNum] = false;  
             driveButtons[buttonNum] = false;
             shootButtons[buttonNum] = false;
+            //first array entry (index 0) is never used, so that button numbers
+            //correspond to index numbers
         }        
     }
     
     public void robotInit() {
-        camera = AxisCamera.getInstance();  // get an instance of the camera
-        cc = new CriteriaCollection();      // create the criteria for the particle filter
-        cc.addCriteria(NIVision.MeasurementType.IMAQ_MT_AREA, 500, 65535, false);
+        //camera = AxisCamera.getInstance();  // get an instance of the camera
+        //cc = new CriteriaCollection();      // create the criteria for the particle filter
+        //cc.addCriteria(NIVision.MeasurementType.IMAQ_MT_AREA, 500, 65535, false);
         System.out.println("Starting RobotInit");
         //get smartdashboard variables
 
@@ -129,9 +135,10 @@ public class Team1482 extends IterativeRobot {
         drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);    
         //Start encoders
         encoderLeft.start();
+        encoderRight.start();
         //Set distance ratio
         encoderLeft.setDistancePerPulse(2);        
-        
+        encoderRight.setDistancePerPulse(2);
         System.out.println("RobotInit compleated!");
         getWatchdog().setEnabled(false);
 
@@ -181,7 +188,7 @@ public class Team1482 extends IterativeRobot {
             double drivestick_x = drivestick.getRawAxis(1);
             double drivestick_y = drivestick.getRawAxis(2);
             
-            if(rpmMatching){ //If is switching RPM
+            if(rpmMatching){ //If is RPM is changing
                 if(gear == 2){ //See if robot is in gear 2
                     //Speed matching code here
                     if(modifyJoystickSpeed >= 1){ //Finished speeding up
@@ -208,26 +215,33 @@ public class Team1482 extends IterativeRobot {
             RightSpeed = encoderRight.getRate();
             LeftAbsSpeed = Math.abs(LeftSpeed); //Get the absolute value of encoder value
             RightAbsSpeed = Math.abs(RightSpeed);
-            joystickYaw = Math.abs(drivestick_y);
+            combinedSpeed = LeftAbsSpeed + RightAbsSpeed;
+            joystickYaw = Math.abs(drivestick_x);
+
             
             SmartDashboard.putNumber("Left speed", LeftSpeed); //Display speed on dashboard
             SmartDashboard.putNumber("Right speed", RightSpeed); //Display speed on dashboard
+            SmartDashboard.putNumber("Gear", gear);
+            SmartDashboard.putBoolean("rpm matching", rpmMatching);
+            SmartDashboard.putNumber("Modifier", modifyJoystickSpeed);
+            SmartDashboard.putNumber("combinedSpeed", combinedSpeed);
+
             
-            if(gear == 1 && LeftAbsSpeed > Config.GEARUP && joystickYaw <= Config.STRAIGHTDEADZONE){ //Switch gear up if is in gear one and is above configured speed
+            if(gear == 1 && combinedSpeed > Config.GEARUP && joystickYaw <= Config.STRAIGHTDEADZONE){ //Switch gear up if is in gear one and is above configured speed
                 //Switch to gear 2
                 Lift.set(false);
                 LiftReset.set(true);
-                System.out.println("Swited to gear 2!");
+                System.out.println("Swited to gear 2! at speed of " + LeftAbsSpeed);
                 gear = 2;
                 //Code to slow motor when switching gears.
                 modifyJoystickSpeed = Config.GEARCHANGESPEEDDEFAULT;
                 rpmMatching = true;
                 
-            }else if(gear ==2 && LeftAbsSpeed < Config.GEARDOWN){  //Gear down if is in gear 2 and is below configured speed
+            }else if(gear ==2 && combinedSpeed < Config.GEARDOWN){  //Gear down if is in gear 2 and is below configured speed
                 //Switch to gear 1
                 Lift.set(true);
                 LiftReset.set(false);
-                System.out.println("Switched to gear 1!");
+                System.out.println("Switched to gear 1! at a speed of " + LeftAbsSpeed);
                 gear = 1;
             }
             
