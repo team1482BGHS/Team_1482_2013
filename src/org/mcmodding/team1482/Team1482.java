@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
 import edu.wpi.first.wpilibj.image.CriteriaCollection;
 import edu.wpi.first.wpilibj.image.NIVision;
@@ -48,13 +49,14 @@ public class Team1482 extends IterativeRobot {
     
     
     //setup talons
-    Talon drive_left_back = new Talon(1);
-    Talon drive_right_back = new Talon(3);
-    Talon drive_left_front = new Talon(2);
-    Talon drive_right_front = new Talon(4);
+    Talon drive_left_back = new Talon(6);
+    Talon drive_right_back = new Talon(7);
+    //Talon drive_left_front = new Talon(2);
+    //Talon drive_right_front = new Talon(4);
     Talon shoot             = new Talon(10);
     //Create drive object
-    RobotDrive drive = new RobotDrive(drive_left_front, drive_left_back, drive_right_front, drive_right_back);
+    //RobotDrive drive = new RobotDrive(drive_left_front, drive_left_back, drive_right_front, drive_right_back);
+    RobotDrive drive = new RobotDrive(drive_left_back, drive_right_back);
     
 
 
@@ -75,6 +77,10 @@ public class Team1482 extends IterativeRobot {
     //Joystick setup
     Joystick drivestick = new Joystick(1);
     Joystick shootstick = new Joystick(2);
+    double drivestick_x = 0;
+    double drivestick_y = 0;
+    double bumper = 0;
+    boolean manual = false;
     //Number of joystick buttons
     public static int NUM_JOYSTICK_BUTTONS = 16;
     //Array to set if button was pressed last itteration
@@ -101,7 +107,9 @@ public class Team1482 extends IterativeRobot {
     //AxisCamera camera;          // the axis camera object (connected to the switch)
     //CriteriaCollection cc;      // the criteria for doing the particle filter operation
     double combinedSpeed;
-
+    //vision our_camera = new vision();
+    
+    
     public Team1482() {
         System.out.println("Starting constructor!");
         
@@ -117,7 +125,7 @@ public class Team1482 extends IterativeRobot {
     }
     
     public void robotInit() {
-        //camera = AxisCamera.getInstance();  // get an instance of the camera
+
         //cc = new CriteriaCollection();      // create the criteria for the particle filter
         //cc.addCriteria(NIVision.MeasurementType.IMAQ_MT_AREA, 500, 65535, false);
         System.out.println("Starting RobotInit");
@@ -130,9 +138,9 @@ public class Team1482 extends IterativeRobot {
         
         /* Uncomment code to invert motor*/
 //        drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
-        drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+//        drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
 //        drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);        
-        drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);    
+//        drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);    
         //Start encoders
         encoderLeft.start();
         encoderRight.start();
@@ -150,8 +158,15 @@ public class Team1482 extends IterativeRobot {
      * This function is called at the start of autonomous
      */
     public void autonomousInit() {
+        getWatchdog().setEnabled(false);
         System.out.println("There is no autonomous code!");
         //TODO: Make automous code!
+        
+//        System.out.println("Auto run!");
+//        our_camera.getImage();
+//        
+        getWatchdog().setEnabled(true);
+        System.out.println("Finished autonomus");
     }
 
     public void teleopInit() {   //Called at the start of teleop
@@ -185,8 +200,14 @@ public class Team1482 extends IterativeRobot {
     public void teleopPeriodic() {  //Called durring operated control
         if (isEnabled()) {  //If the robot is enabled
             //Get joystick values
-            double drivestick_x = drivestick.getRawAxis(1);
-            double drivestick_y = drivestick.getRawAxis(2);
+            drivestick_x = drivestick.getRawAxis(1);
+            drivestick_y = drivestick.getRawAxis(2);
+            bumper       = drivestick.getRawAxis(3);
+            
+            
+            //print controller drive inputs
+            SmartDashboard.putNumber("X Input", drivestick_x);
+            SmartDashboard.putNumber("Y Input", drivestick_y);
             
             if(rpmMatching){ //If is RPM is changing
                 if(gear == 2){ //See if robot is in gear 2
@@ -225,9 +246,23 @@ public class Team1482 extends IterativeRobot {
             SmartDashboard.putBoolean("rpm matching", rpmMatching);
             SmartDashboard.putNumber("Modifier", modifyJoystickSpeed);
             SmartDashboard.putNumber("combinedSpeed", combinedSpeed);
-
+            if(bumper >= .5){
+                System.out.println("Gearing up");
+                manual = true;
+                Lift.set(false);
+                LiftReset.set(true);
+                gear = 2;
+            }else if(bumper <= -.5){
+                System.out.println("Gearing Down");    
+                manual = true;
+                Lift.set(true);
+                LiftReset.set(false);
+                gear = 1;
+            }else{
+                manual = false;
+            }
             
-            if(gear == 1 && combinedSpeed > Config.GEARUP && joystickYaw <= Config.STRAIGHTDEADZONE){ //Switch gear up if is in gear one and is above configured speed
+            if(gear == 1 && combinedSpeed > Config.GEARUP && !manual){ //Switch gear up if is in gear one and is above configured speed
                 //Switch to gear 2
                 Lift.set(false);
                 LiftReset.set(true);
@@ -237,7 +272,7 @@ public class Team1482 extends IterativeRobot {
                 modifyJoystickSpeed = Config.GEARCHANGESPEEDDEFAULT;
                 rpmMatching = true;
                 
-            }else if(gear ==2 && combinedSpeed < Config.GEARDOWN){  //Gear down if is in gear 2 and is below configured speed
+            }else if(gear ==2 && combinedSpeed < Config.GEARDOWN && !manual){  //Gear down if is in gear 2 and is below configured speed
                 //Switch to gear 1
                 Lift.set(true);
                 LiftReset.set(false);
