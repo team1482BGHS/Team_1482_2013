@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Watchdog;
+import edu.wpi.first.wpilibj.buttons.DigitalIOButton;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
 import edu.wpi.first.wpilibj.image.CriteriaCollection;
 import edu.wpi.first.wpilibj.image.NIVision;
@@ -68,17 +69,18 @@ public class Team1482 extends IterativeRobot {
     double RightSpeed;
     double RightAbsSpeed;
     int gear;  //Current gear
+    DigitalIOButton button5 = new DigitalIOButton(5);
     
     double modifyJoystickSpeed;
     boolean rpmMatching;
-    
+    boolean[] dioButton = new boolean[14];
     
     //Joystick setup
     Joystick drivestick = new Joystick(1);
     Joystick shootstick = new Joystick(2);
     double drivestick_x = 0;
     double drivestick_y = 0;
-    double bumper = 0;
+    double trigger = 0;
     boolean manual = false;
     //Number of joystick buttons
     public static int NUM_JOYSTICK_BUTTONS = 16;
@@ -201,7 +203,7 @@ public class Team1482 extends IterativeRobot {
             //Get joystick values
             drivestick_x = drivestick.getRawAxis(1);
             drivestick_y = drivestick.getRawAxis(2);
-            bumper       = drivestick.getRawAxis(3);
+            trigger       = drivestick.getRawAxis(3);
             
             
             //print controller drive inputs
@@ -245,13 +247,14 @@ public class Team1482 extends IterativeRobot {
             SmartDashboard.putBoolean("rpm matching", rpmMatching);
             SmartDashboard.putNumber("Modifier", modifyJoystickSpeed);
             SmartDashboard.putNumber("combinedSpeed", combinedSpeed);
-            if(bumper >= .5){
-                System.out.println("Gearing up");
+            if(trigger >= .5){
+                //If the right trigger is pressed switch to gear 2
                 manual = true;
                 Lift.set(false);
                 LiftReset.set(true);
                 gear = 2;
-            }else if(bumper <= -.5){
+            }else if(trigger <= -.5){
+                //If the left trigger is pressed switch to gear 1;
                 System.out.println("Gearing Down");    
                 manual = true;
                 Lift.set(true);
@@ -282,15 +285,20 @@ public class Team1482 extends IterativeRobot {
             
             //Drive motors based on joystick values
             drive.arcadeDrive(drivestick_x, drivestick_y);
-            //Get values of joystick buttons
             
+            //Get values of joystick buttons
             shootButtons[1] = drivestick.getRawButton(1);
             shootButtons[2] = drivestick.getRawButton(2);
             shootButtons[3] = drivestick.getRawButton(3);
             shootButtons[4] = drivestick.getRawButton(4);
+            //DIO buttons
+            dioButton[5] = button5.get();
+            
+            
+            SmartDashboard.putBoolean("DIO button 5", dioButton[5]);            
             
             //Button press and not pressed before
-            
+
             /* BUTTON ONE CODE */
             if(shootButtons[1] && !m_driveStickButtonState[1]){
                 System.out.println("Pressed!");
