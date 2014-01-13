@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.buttons.DigitalIOButton;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
@@ -51,13 +52,16 @@ public class Team1482 extends IterativeRobot {
     //setup talons
     Talon drive_left_back = new Talon(6);
     Talon drive_right_back = new Talon(7);
-    //Talon drive_left_front = new Talon(2);
-    //Talon drive_right_front = new Talon(4);
+    Talon drive_left_front = new Talon(8);
+    Talon drive_right_front = new Talon(2);
     Talon shoot             = new Talon(10);
+    // Enabled 4 motor drive, switched Talon 2/4 to 1/2 for less confusing connection, also considering reordering to LLRR instead or LRLR
     //Create drive object
-    //RobotDrive drive = new RobotDrive(drive_left_front, drive_left_back, drive_right_front, drive_right_back);
-    RobotDrive drive = new RobotDrive(drive_left_back, drive_right_back);
+    RobotDrive drive = new RobotDrive(drive_left_front, drive_left_back, drive_right_front, drive_right_back);
+    //RobotDrive drive = new RobotDrive(drive_left_back, drive_right_back);
     
+    //Ultrasonic sensor object
+    PWM sonicRange = new PWM(5); //use rge Ultrasonic API!!!!! file:///C:/Users/student/sunspotfrcsdk/doc/javadoc/edu/wpi/first/wpilibj/Ultrasonic.html
 
 
     //Create new encoders
@@ -136,22 +140,23 @@ public class Team1482 extends IterativeRobot {
         SmartDashboard.putBoolean("Lift State", false);
         SmartDashboard.getBoolean("Demo Mode", false);
         SmartDashboard.getBoolean("Enable shooter?" , true);
+
         
         /* Uncomment code to invert motor*/
-//        drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
-//        drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
-//        drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);        
-//        drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);    
+        drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
+        drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+        drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);        
+        drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);    
         //Start encoders
         encoderLeft.start();
         encoderRight.start();
         //Set distance ratio
         encoderLeft.setDistancePerPulse(2);        
         encoderRight.setDistancePerPulse(2);
-        System.out.println("RobotInit compleated!");
+        System.out.println("RobotInit completed!");
         getWatchdog().setEnabled(false);
-
-        
+// Fixed a typo, used to say "compleated" and changed to "completed"
+        //Similar note, replaced every instance of "dissabled" to "disabled". changes only occured in printout texts and comments.
         
     }
 
@@ -186,15 +191,17 @@ public class Team1482 extends IterativeRobot {
         LiftReset.set(false);
         gear = 1;
         
+        
+        
         //Get smartdashboard variables
         //m_demoMode = SmartDashboard.getBoolean("Demo Mode");
         //this.checkDemoMode(m_teleEnabledLoops, true);
     }
-    public void disabledInit() { //Called when dissabled
+    public void disabledInit() { //Called when disabled
         
         System.out.println("Dissabled!");
     }
-    public void disabledPeriodic() { //called throughout when dissabled
+    public void disabledPeriodic() { //called throughout when disabled
         getWatchdog().feed();
         Timer.delay(0.07);
     }
@@ -247,6 +254,15 @@ public class Team1482 extends IterativeRobot {
             SmartDashboard.putBoolean("rpm matching", rpmMatching);
             SmartDashboard.putNumber("Modifier", modifyJoystickSpeed);
             SmartDashboard.putNumber("combinedSpeed", combinedSpeed);
+            
+                    
+        //testing ultrasonic
+        SmartDashboard.putNumber("Range Channel", sonicRange.getChannel());
+        SmartDashboard.putNumber("Range Module", sonicRange.getModuleNumber());
+        SmartDashboard.putNumber("Range Raw", sonicRange.getRaw());
+        SmartDashboard.putNumber("Range Position", sonicRange.getPosition());
+        SmartDashboard.putNumber("RangeSpeed", sonicRange.getSpeed());
+        
             if(trigger >= .5){
                 //If the right trigger is pressed switch to gear 2
                 manual = true;
@@ -344,7 +360,7 @@ public class Team1482 extends IterativeRobot {
             getWatchdog().feed();
             Timer.delay(0.01);
         }else{
-            //Feed the watchdog when dissabled
+            //Feed the watchdog when disabled
             getWatchdog().feed();
             Timer.delay(0.04);
         }
@@ -352,7 +368,7 @@ public class Team1482 extends IterativeRobot {
     
     
     public boolean checkDemoMode(int loops, boolean force) {
-        //See if robot is in dissabled mode every 40 loops
+        //See if robot is in disabled mode every 40 loops
         if(loops % 40 == 0 || force){
             m_demoMode = SmartDashboard.getBoolean("Demo Mode");
         }
@@ -363,7 +379,7 @@ public class Team1482 extends IterativeRobot {
                 //DEMO MODE CODE HERE!
                 m_shooterEnabled = SmartDashboard.getBoolean("Enable shooter?");
                 if (!m_shooterEnabled) {
-                    System.out.println("Shooter dissabled!");
+                    System.out.println("Shooter disabled!");
                 }
                 m_driveSpeedModifier = (int) SmartDashboard.getNumber("Drive speed modifier");
 
