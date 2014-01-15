@@ -11,6 +11,8 @@ package org.mcmodding.team1482;
 import edu.wpi.first.wpilibj.AnalogChannel;
 import edu.wpi.first.wpilibj.AnalogModule;
 import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStationLCD;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
@@ -87,6 +89,7 @@ public class Team1482 extends IterativeRobot {
     public Solenoid Lift          = new Solenoid(3);
     public Solenoid LiftReset     = new Solenoid(4);
     
+    DriverStation driver_station = DriverStation.getInstance();
     
     public Team1482() {
         System.out.println("Starting constructor!");
@@ -150,6 +153,12 @@ public class Team1482 extends IterativeRobot {
     public void disabledPeriodic() {
         getWatchdog().feed();
         Timer.delay(0.05);
+        int blueVal = DriverStation.Alliance.kBlue_val;
+        int redVal  = DriverStation.Alliance.kRed_val;
+        SmartDashboard.putNumber("BlueVal", blueVal);
+        SmartDashboard.putNumber("RedVal", redVal);
+        Alliance alliance = driver_station.getAlliance();
+        SmartDashboard.putString("Alliance Name", alliance.name);
     }
     public void teleopPeriodic() {
         if (isEnabled()) {
