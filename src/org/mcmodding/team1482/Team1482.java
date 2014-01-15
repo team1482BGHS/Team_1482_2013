@@ -8,15 +8,19 @@
 package org.mcmodding.team1482;
 
 
+import edu.wpi.first.wpilibj.AnalogChannel;
+import edu.wpi.first.wpilibj.AnalogModule;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DriverStationLCD;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import java.lang.*;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -31,6 +35,9 @@ public class Team1482 extends IterativeRobot {
      * used for any initialization code.
      */
     //timing ints
+    AnalogChannel sonicRange = new AnalogChannel(7);
+    double vpi = 0;
+    
     int m_disabledPeriodicLoops;
     int m_autoPeriodicLoops;
     int m_telePeriodicLoops;
@@ -146,6 +153,18 @@ public class Team1482 extends IterativeRobot {
     }
     public void teleopPeriodic() {
         if (isEnabled()) {
+        //testing ultrasonic
+        SmartDashboard.putNumber("Range Channel", sonicRange.getChannel());
+        SmartDashboard.putNumber("Range Module", sonicRange.getModuleNumber());
+        SmartDashboard.putNumber("Range voltage", sonicRange.getVoltage());
+        SmartDashboard.putNumber("Range value", sonicRange.getValue());
+        vpi = 0.009765625;
+        double range = sonicRange.getVoltage() / vpi;
+        int irange = (int) (range * 100);
+        range = irange / 100.0;
+        SmartDashboard.putNumber("distance", range);
+        
+        //SmartDashboard.putNumber("RangeSpeed", sonicRange.getSpeed());            
             //double speedModifier;
             //Get joystick values
             double drivestick_x = drivestick.getRawAxis(1);
