@@ -181,7 +181,7 @@ public class Team1482 extends IterativeRobot {
         SmartDashboard.putNumber("distance", range);
         
         //SmartDashboard.putNumber("RangeSpeed", sonicRange.getSpeed());            
-            //double speedModifier;
+
             //Get joystick values
             double drivestick_x = drivestick.getRawAxis(1);
             double drivestick_y = drivestick.getRawAxis(2);
@@ -192,26 +192,27 @@ public class Team1482 extends IterativeRobot {
             tiltAngle = camTilt.get();
             SmartDashboard.putNumber("Cam Pan", panAngle);
             SmartDashboard.putNumber("Cam Tilt", tiltAngle);
-            System.out.println(camJoystick_x + " Y is " + camJoystick_y);
-            //camPan.set();
+            //System.out.println(camJoystick_x + " Y is " + camJoystick_y);
+            
             if(camJoystick_x <= -.2){
-                //Turn left
-                camPan.set(panAngle - 0.05); 
-                System.out.println("turning left");
+                //Rotate the camera left
+                camPan.set(panAngle - (camJoystick_x / 100)); 
+                //System.out.println("turning left");
                 
             }else if(camJoystick_x >= .2){
-                //Turn leftAutoAdd
-                camPan.set(panAngle + 0.05);
-                System.out.println("turning right");
+                //Rotate the camera right
+                camPan.set(panAngle + (camJoystick_x / 100));
+                //System.out.println("turning right");
             }
+            
             if(camJoystick_y >= .2){
-                //Turn left
-                camTilt.set(tiltAngle - 0.05);
-                System.out.println("turning down");
+                //Roatate the camera down
+                camTilt.set(tiltAngle - (camJoystick_y / 100));
+                //System.out.println("turning down");
             }else if(camJoystick_y <= -.2){
-                //Turn left
-                camTilt.set(tiltAngle + 0.05);  
-                System.out.println("turning up");
+                //Rotate the camera up
+                camTilt.set(tiltAngle + (camJoystick_y / 100));  
+                //System.out.println("turning up");
             }
             
             
