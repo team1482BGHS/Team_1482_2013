@@ -100,6 +100,7 @@ public class Team1482 extends IterativeRobot {
     
     public Team1482() {
         System.out.println("Starting constructor!");
+        double shootSpeed = SmartDashboard.getNumber("Shooter speed", -1);
 
         for (int buttonNum = 1; buttonNum <= NUM_JOYSTICK_BUTTONS; buttonNum++) {
             //Set default vales for jpystick button arrays
@@ -196,22 +197,22 @@ public class Team1482 extends IterativeRobot {
             
             if(camJoystick_x <= -.2){
                 //Rotate the camera left
-                camPan.set(panAngle - (camJoystick_x / 100)); 
+                camPan.set(panAngle + (camJoystick_x / 30)); 
                 //System.out.println("turning left");
                 
             }else if(camJoystick_x >= .2){
                 //Rotate the camera right
-                camPan.set(panAngle + (camJoystick_x / 100));
+                camPan.set(panAngle + (camJoystick_x / 30));
                 //System.out.println("turning right");
             }
             
             if(camJoystick_y >= .2){
                 //Roatate the camera down
-                camTilt.set(tiltAngle - (camJoystick_y / 100));
+                camTilt.set(tiltAngle - (camJoystick_y / 30));
                 //System.out.println("turning down");
             }else if(camJoystick_y <= -.2){
                 //Rotate the camera up
-                camTilt.set(tiltAngle + (camJoystick_y / 100));  
+                camTilt.set(tiltAngle - (camJoystick_y / 30));  
                 //System.out.println("turning up");
             }
             
