@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
@@ -90,6 +91,12 @@ public class Team1482 extends IterativeRobot {
     public Solenoid LiftReset     = new Solenoid(4);
     
     DriverStation driver_station = DriverStation.getInstance();
+    
+    private Servo camPan  = new Servo(5);
+    private Servo camTilt = new Servo(6);
+    
+    double panAngle;
+    double tiltAngle;
     
     public Team1482() {
         System.out.println("Starting constructor!");
@@ -178,6 +185,35 @@ public class Team1482 extends IterativeRobot {
             //Get joystick values
             double drivestick_x = drivestick.getRawAxis(1);
             double drivestick_y = drivestick.getRawAxis(2);
+            double camJoystick_x = drivestick.getRawAxis(4);
+            double camJoystick_y = drivestick.getRawAxis(5);  
+            
+            panAngle = camPan.get();
+            tiltAngle = camTilt.get();
+            SmartDashboard.putNumber("Cam Pan", panAngle);
+            SmartDashboard.putNumber("Cam Tilt", tiltAngle);
+            System.out.println(camJoystick_x + " Y is " + camJoystick_y);
+            //camPan.set();
+            if(camJoystick_x <= -.2){
+                //Turn left
+                camPan.set(panAngle - 0.05); 
+                System.out.println("turning left");
+                
+            }else if(camJoystick_x >= .2){
+                //Turn leftAutoAdd
+                camPan.set(panAngle + 0.05);
+                System.out.println("turning right");
+            }
+            if(camJoystick_y >= .2){
+                //Turn left
+                camTilt.set(tiltAngle - 0.05);
+                System.out.println("turning down");
+            }else if(camJoystick_y <= -.2){
+                //Turn left
+                camTilt.set(tiltAngle + 0.05);  
+                System.out.println("turning up");
+            }
+            
             
 
 //            if (this.checkDemoMode(m_telePeriodicLoops, false)) {
