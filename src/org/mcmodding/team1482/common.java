@@ -8,6 +8,7 @@ package org.mcmodding.team1482;
 
 import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Talon;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  *
@@ -44,7 +45,8 @@ public class common {
     }
     public static boolean motor(boolean state, Talon motor){
         if(!state){
-            motor.set(-1);
+            double shootSpeed = SmartDashboard.getNumber("Shooter speed", -1);
+            motor.set(shootSpeed);
             System.out.println("Turned on motor!");
             return true;
         }else{

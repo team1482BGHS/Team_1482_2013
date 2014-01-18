@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.PWM;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.buttons.DigitalIOButton;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
@@ -84,6 +85,8 @@ public class Team1482 extends IterativeRobot {
     Joystick shootstick = new Joystick(2);
     double drivestick_x = 0;
     double drivestick_y = 0;
+    double camJoystick_x = 0;
+    double camJoystick_y = 0;
     double trigger = 0;
     boolean manual = false;
     //Number of joystick buttons
@@ -115,9 +118,19 @@ public class Team1482 extends IterativeRobot {
     //vision our_camera = new vision();
     
     
+    
+    Servo camPan  = new Servo(4);
+    Servo camTilt = new Servo(3);
+    
+    double panAngle;
+    double tiltAngle;
+    
+    
+    vision V = new vision();
+    
     public Team1482() {
         System.out.println("Starting constructor!");
-        
+       
         for (int buttonNum = 1; buttonNum > NUM_JOYSTICK_BUTTONS; buttonNum++) {
             //Set default vales for jpystick button arrays
             m_driveStickButtonState[buttonNum] = false;
@@ -199,7 +212,7 @@ public class Team1482 extends IterativeRobot {
     }
     public void disabledInit() { //Called when disabled
         
-        System.out.println("Dissabled!");
+        System.out.println("Disabled!");
     }
     public void disabledPeriodic() { //called throughout when disabled
         getWatchdog().feed();
@@ -216,7 +229,36 @@ public class Team1482 extends IterativeRobot {
             //print controller drive inputs
             SmartDashboard.putNumber("X Input", drivestick_x);
             SmartDashboard.putNumber("Y Input", drivestick_y);
+            camJoystick_x = drivestick.getRawAxis(4);
+            camJoystick_y = drivestick.getRawAxis(5);  
             
+            
+            panAngle = camPan.get();
+            tiltAngle = camTilt.get();
+            SmartDashboard.putNumber("Cam Pan", panAngle);
+            SmartDashboard.putNumber("Cam Tilt", tiltAngle);
+            //System.out.println(camJoystick_x + " Y is " + camJoystick_y);
+            
+            if(camJoystick_x <= -.2){
+                //Rotate the camera left
+                camPan.set(panAngle + (camJoystick_x / 30)); 
+                System.out.println("turning left");
+                
+            }else if(camJoystick_x >= .2){
+                //Rotate the camera right
+                camPan.set(panAngle + (camJoystick_x / 30));
+                System.out.println("turning right");
+            }
+            
+            if(camJoystick_y >= .2){
+                //Roatate the camera down
+                camTilt.set(tiltAngle - (camJoystick_y / 30));
+                //System.out.println("turning down");
+            }else if(camJoystick_y <= -.2){
+                //Rotate the camera up
+                camTilt.set(tiltAngle - (camJoystick_y / 30));  
+                //System.out.println("turning up");
+            }
             if(rpmMatching){ //If is RPM is changing
                 if(gear == 2){ //See if robot is in gear 2
                     //Speed matching code here
@@ -353,7 +395,17 @@ public class Team1482 extends IterativeRobot {
                 //Reset variable
                 m_driveStickButtonState[3] = false;
             }
-            
+            /* BUTTON FOUR CODE */
+            if(shootButtons[4]&& !m_driveStickButtonState[4]){
+                System.out.println("Pressed 4");
+                //Turn motor on/off
+                V.getImage();
+                m_driveStickButtonState[4] = true;
+            }else if(!shootButtons[4] && m_driveStickButtonState[4]){
+                System.out.println("Reset 4");
+                //Reset variable
+                m_driveStickButtonState[4] = false;
+            }            
             
             
             //feed the watchdog
