@@ -52,7 +52,7 @@ public class Team1482 extends IterativeRobot {
     
     //setup talons
     Talon drive_left_back = new Talon(6);
-    Talon drive_right_back = new Talon(7);
+    Talon drive_right_back = new Talon(9);
     Talon drive_left_front = new Talon(8);
     Talon drive_right_front = new Talon(2);
     Talon shoot             = new Talon(10);
@@ -104,7 +104,7 @@ public class Team1482 extends IterativeRobot {
     double joystickYaw;
     
     //Setup compressor
-    Compressor airCompressor      = new Compressor(8,1);
+    Compressor airCompressor      = new Compressor(9,1);
     //Setup solonides
     public Solenoid Shoot         = new Solenoid(1);
     public Solenoid ShootReset    = new Solenoid(2);

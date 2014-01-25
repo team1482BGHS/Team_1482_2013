@@ -46,6 +46,12 @@ public class vision {
     CriteriaCollection cc; 
     
     Watchdog watchDog = Watchdog.getInstance();
+    
+    /*Setup image variables */
+    BinaryImage HSVimage;
+    BinaryImage RGBimage;
+    
+    
     vision() {
         camera = AxisCamera.getInstance("10.14.82.12");
         cc = new CriteriaCollection();      // create the criteria for the particle filter
@@ -74,13 +80,65 @@ public class vision {
         cc = new CriteriaCollection();      // create the criteria for the particle filter
         cc.addCriteria(NIVision.MeasurementType.IMAQ_MT_AREA, AREA_MINIMUM, 65535, false);
     }
- 
+    public BinaryImage getHSVimage(ColorImage image){
+        try{
+            this.HSVimage = image.thresholdHSV(92, 196, 19, 100, 30, 100);
+        } catch (NIVisionException ex) {
+            ex.printStackTrace();
+        }
+        System.out.println("Processed HSV image");
+        return this.HSVimage;
+    }
+    public BinaryImage getRGBimage(ColorImage image) {
+        try{
+            this.RGBimage = image.thresholdRGB(0, 150, 145, 230, 120, 225);
+        } catch (NIVisionException ex) {
+            ex.printStackTrace();
+        }
+        System.out.println("Processing RGB image");
+        return this.RGBimage;
+    }
+    
     public void getImage() {
+         try {
+
+            
+            watchDog.feed();
+            
+            /*Get the image from the camera */
+            System.out.println("Taking image");
+            ColorImage image = camera.getImage();
+            image.write("/Camera_Image.bmp"); //Wright the image to disk
+            watchDog.feed();
+            
+            //write the HSV processed image to disk
+            getHSVimage(image).write("/threshold.bmp");;
+            watchDog.feed(); //Keep the watchdog feed
+            
+            //Write the RGB processed image to disk
+            getRGBimage(image).write("/rgbImage.bmp");
+            watchDog.feed();
+            //Get the HSV partical filter and write to disk
+            BinaryImage HSVparticleFilter = this.HSVimage.particleFilter(cc);
+            HSVparticleFilter.write("/filterdImage.bmp");
+            watchDog.feed();
+         } catch(AxisCameraException ex) {
+             ex.printStackTrace();
+         } catch(NIVisionException ex) {
+             ex.printStackTrace();
+             
+         } catch(Exception ex) {
+             ex.printStackTrace();
+         }
+    }
+ 
+    public void getTarget() {
         int verticalTargetCount, horizontalTargetCount;
-        try {
-            TargetReport target = new TargetReport();
+        TargetReport target = new TargetReport();
 	int verticalTargets[] = new int[MAX_PARTICLES];
 	int horizontalTargets[] = new int[MAX_PARTICLES];
+        try {
+
 	    
             System.out.println("Taking image");
             watchDog.feed();
@@ -89,7 +147,7 @@ public class vision {
             
             watchDog.feed();
             //BinaryImage thresholdImage = image.thresholdHSV(60, 100, 90, 255, 20, 255);
-            BinaryImage thresholdImage = image.thresholdHSV(10, 20, 10, 20, 10, 20);   
+            BinaryImage thresholdImage = image.thresholdHSV(92, 196, 19, 100, 30, 100);   
             thresholdImage.write("/threshold.bmp");
             watchDog.feed();
             BinaryImage RGBImage = image.thresholdRGB(0, 150, 145, 230, 120, 225);   //Keep only green particles
