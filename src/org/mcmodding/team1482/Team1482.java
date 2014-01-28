@@ -51,23 +51,22 @@ public class Team1482 extends IterativeRobot {
     
     
     //setup talons
-    Talon drive_left_back = new Talon(6);
-    Talon drive_right_back = new Talon(9);
-    Talon drive_left_front = new Talon(8);
-    Talon drive_right_front = new Talon(2);
+    Talon drive_left_back = new Talon(1);
+    Talon drive_right_back = new Talon(2);
+    Talon drive_left_front = new Talon(3);
+    Talon drive_right_front = new Talon(4);
+    Talon punch           = new Talon(7);
     Talon shoot             = new Talon(10);
     // Enabled 4 motor drive, switched Talon 2/4 to 1/2 for less confusing connection, also considering reordering to LLRR instead or LRLR
     //Create drive object
     RobotDrive drive = new RobotDrive(drive_left_front, drive_left_back, drive_right_front, drive_right_back);
     //RobotDrive drive = new RobotDrive(drive_left_back, drive_right_back);
     
-    //Ultrasonic sensor object
-    PWM sonicRange = new PWM(5); //use rge Ultrasonic API!!!!! file:///C:/Users/student/sunspotfrcsdk/doc/javadoc/edu/wpi/first/wpilibj/Ultrasonic.html
 
 
     //Create new encoders
-    Encoder encoderLeft = new Encoder(1, 2);
-    Encoder encoderRight = new Encoder(3, 4);
+    Encoder encoderLeft = new Encoder(3, 4);
+    Encoder encoderRight = new Encoder(1, 2);
     //Encoder related variables
     double LeftSpeed; //Encoder speed
     double LeftAbsSpeed; //Absolute encoder speed
@@ -75,7 +74,9 @@ public class Team1482 extends IterativeRobot {
     double RightAbsSpeed;
     int gear;  //Current gear
     DigitalIOButton button5 = new DigitalIOButton(5);
-    
+    DigitalIOButton PunchLimit = new DigitalIOButton(6);
+    DigitalIOButton button7 = new DigitalIOButton(7);
+    DigitalIOButton button8 = new DigitalIOButton(8);
     double modifyJoystickSpeed;
     boolean rpmMatching;
     boolean[] dioButton = new boolean[14];
@@ -105,28 +106,34 @@ public class Team1482 extends IterativeRobot {
     
     //Setup compressor
     Compressor airCompressor      = new Compressor(9,1);
-    //Setup solonides
-    public Solenoid Shoot         = new Solenoid(1);
-    public Solenoid ShootReset    = new Solenoid(2);
-    public Solenoid Lift          = new Solenoid(3);
-    public Solenoid LiftReset     = new Solenoid(4);
-    //Our vision object
+    
+    //Setup solenoids
+    public Solenoid Shoot             = new Solenoid(1);
+    public Solenoid ShootReset        = new Solenoid(2);
+    public Solenoid Lift              = new Solenoid(3);
+    public Solenoid LiftReset         = new Solenoid(4);
+    public Solenoid WheelLiftUp       = new Solenoid (2,1);
+    public Solenoid WheelLiftDown     = new Solenoid (2,2);
+    public Solenoid ArmAngleUp        = new Solenoid (2,3);
+    public Solenoid ArmAngleDown      = new Solenoid (2,4);
+    public Solenoid PunchGear         = new Solenoid (2,5);
+    public Solenoid PunchNeutral      = new Solenoid (2,6);
+    //add more arm solenoids
 
-    //AxisCamera camera;          // the axis camera object (connected to the switch)
-    //CriteriaCollection cc;      // the criteria for doing the particle filter operation
     double combinedSpeed;
-    //vision our_camera = new vision();
     
     
     
-    Servo camPan  = new Servo(4);
-    Servo camTilt = new Servo(3);
+    Servo camPan  = new Servo(5);
+    Servo camTilt = new Servo(6);
     
     double panAngle;
     double tiltAngle;
     
     
-    vision V = new vision();
+    //vision V = new vision();
+    
+    double distance;
     
     public Team1482() {
         System.out.println("Starting constructor!");
@@ -157,9 +164,9 @@ public class Team1482 extends IterativeRobot {
         
         /* Uncomment code to invert motor*/
         drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
-        drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
+        //drive.setInvertedMotor(RobotDrive.MotorType.kFrontRight, true);
         drive.setInvertedMotor(RobotDrive.MotorType.kRearLeft, true);        
-        drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);    
+        //drive.setInvertedMotor(RobotDrive.MotorType.kRearRight, true);    
         //Start encoders
         encoderLeft.start();
         encoderRight.start();
@@ -185,7 +192,7 @@ public class Team1482 extends IterativeRobot {
 //        our_camera.getImage();
 //        
         getWatchdog().setEnabled(true);
-        System.out.println("Finished autonomus");
+        System.out.println("Finished Autonomous");
     }
 
     public void teleopInit() {   //Called at the start of teleop
@@ -202,6 +209,8 @@ public class Team1482 extends IterativeRobot {
         //Set defualt values for gear shifter
         Lift.set(true);
         LiftReset.set(false);
+        WheelLiftUp.set(true);
+        WheelLiftDown.set(false);
         gear = 1;
         
         
@@ -213,6 +222,7 @@ public class Team1482 extends IterativeRobot {
     public void disabledInit() { //Called when disabled
         
         System.out.println("Disabled!");
+        airCompressor.stop();
     }
     public void disabledPeriodic() { //called throughout when disabled
         getWatchdog().feed();
@@ -220,23 +230,33 @@ public class Team1482 extends IterativeRobot {
     }
     public void teleopPeriodic() {  //Called durring operated control
         if (isEnabled()) {  //If the robot is enabled
+            
+            
+            //Testing robo realm
+            try{
+                //distance = SmartDashboard.getNumber("distance");
+                //SmartDashboard.putNumber("Numb from robo realm", distance);
+            } catch(Exception ex) {
+                ex.printStackTrace();
+            }
             //Get joystick values
             drivestick_x = drivestick.getRawAxis(1);
             drivestick_y = drivestick.getRawAxis(2);
             trigger       = drivestick.getRawAxis(3);
-            
+            camJoystick_x = drivestick.getRawAxis(4);
+            camJoystick_y = drivestick.getRawAxis(5); 
+          
             
             //print controller drive inputs
             SmartDashboard.putNumber("X Input", drivestick_x);
             SmartDashboard.putNumber("Y Input", drivestick_y);
-            camJoystick_x = drivestick.getRawAxis(4);
-            camJoystick_y = drivestick.getRawAxis(5);  
+            SmartDashboard.putNumber("Cam Pan", panAngle);
+            SmartDashboard.putNumber("Cam Tilt", tiltAngle);
             
             
             panAngle = camPan.get();
             tiltAngle = camTilt.get();
-            SmartDashboard.putNumber("Cam Pan", panAngle);
-            SmartDashboard.putNumber("Cam Tilt", tiltAngle);
+           
             //System.out.println(camJoystick_x + " Y is " + camJoystick_y);
             
             if(camJoystick_x <= -.2){
@@ -288,8 +308,13 @@ public class Team1482 extends IterativeRobot {
             RightAbsSpeed = Math.abs(RightSpeed);
             combinedSpeed = LeftAbsSpeed + RightAbsSpeed;
             joystickYaw = Math.abs(drivestick_x);
-
             
+            
+            
+            //Camera debug
+            SmartDashboard.putBoolean("Compresser state", airCompressor.enabled());
+            SmartDashboard.putBoolean("Compressor switch value", airCompressor.getPressureSwitchValue());
+            //Gear and speed debug
             SmartDashboard.putNumber("Left speed", LeftSpeed); //Display speed on dashboard
             SmartDashboard.putNumber("Right speed", RightSpeed); //Display speed on dashboard
             SmartDashboard.putNumber("Gear", gear);
@@ -298,13 +323,6 @@ public class Team1482 extends IterativeRobot {
             SmartDashboard.putNumber("combinedSpeed", combinedSpeed);
             
                     
-        //testing ultrasonic
-        SmartDashboard.putNumber("Range Channel", sonicRange.getChannel());
-        SmartDashboard.putNumber("Range Module", sonicRange.getModuleNumber());
-        SmartDashboard.putNumber("Range Raw", sonicRange.getRaw());
-        SmartDashboard.putNumber("Range Position", sonicRange.getPosition());
-        SmartDashboard.putNumber("RangeSpeed", sonicRange.getSpeed());
-        
             if(trigger >= .5){
                 //If the right trigger is pressed switch to gear 2
                 manual = true;
@@ -349,12 +367,18 @@ public class Team1482 extends IterativeRobot {
             shootButtons[2] = drivestick.getRawButton(2);
             shootButtons[3] = drivestick.getRawButton(3);
             shootButtons[4] = drivestick.getRawButton(4);
+            shootButtons[5] = drivestick.getRawButton(5);
             //DIO buttons
             dioButton[5] = button5.get();
+            dioButton[6] = PunchLimit.get();
+            dioButton[7] = button7.get();
+            dioButton[8] = button8.get();
+            //Please explain what DIO 5-8 are in comment.
             
-            
-            SmartDashboard.putBoolean("DIO button 5", dioButton[5]);            
-            
+            SmartDashboard.putBoolean("DIO button 5", dioButton[5]); 
+            SmartDashboard.putBoolean("Punch limit", dioButton[6]);
+            SmartDashboard.putBoolean("DIO button 7", dioButton[7]); 
+            SmartDashboard.putBoolean("DIO button 8", dioButton[8]); 
             //Button press and not pressed before
 
             /* BUTTON ONE CODE */
@@ -399,14 +423,37 @@ public class Team1482 extends IterativeRobot {
             if(shootButtons[4]&& !m_driveStickButtonState[4]){
                 System.out.println("Pressed 4");
                 //Turn motor on/off
-                V.getImage();
+                //V.getImage();
                 m_driveStickButtonState[4] = true;
             }else if(!shootButtons[4] && m_driveStickButtonState[4]){
                 System.out.println("Reset 4");
                 //Reset variable
                 m_driveStickButtonState[4] = false;
             }            
-            
+            /* BUTTON FOUR CODE */
+            if(shootButtons[5]){
+                System.out.println("Pressed 5");
+                
+                if(!dioButton[6]){
+                    System.out.println("Charging punch!!!!");
+                    PunchGear.set(true); //Switch into gear
+                    PunchNeutral.set(false);
+                    punch.set(0.6);
+                }else{
+                    System.out.println("PUNCHED!");
+                    PunchGear.set(false);
+                    PunchNeutral.set(true);
+                    punch.set(0);
+                }
+                
+                m_driveStickButtonState[5] = true;
+            }else if(!shootButtons[5] && m_driveStickButtonState[5]){
+                System.out.println("Reset 5");
+                punch.set(0);
+                
+                //Reset variable
+                m_driveStickButtonState[5] = false;
+            }              
             
             //feed the watchdog
             getWatchdog().feed();
