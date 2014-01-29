@@ -6,7 +6,7 @@
 /*----------------------------------------------------------------------------*/
 package org.mcmodding.team1482;
 
-
+//Robo-Sempai please work
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
@@ -19,7 +19,9 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Watchdog;
+import edu.wpi.first.wpilibj.buttons.Button;
 import edu.wpi.first.wpilibj.buttons.DigitalIOButton;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
 import edu.wpi.first.wpilibj.image.CriteriaCollection;
 import edu.wpi.first.wpilibj.image.NIVision;
@@ -73,14 +75,18 @@ public class Team1482 extends IterativeRobot {
     double RightSpeed;
     double RightAbsSpeed;
     int gear;  //Current gear
-    DigitalIOButton button5 = new DigitalIOButton(5);
-    DigitalIOButton PunchLimit = new DigitalIOButton(6);
-    DigitalIOButton button7 = new DigitalIOButton(7);
-    DigitalIOButton button8 = new DigitalIOButton(8);
+    DigitalInput button5 = new DigitalInput(5);
+    DigitalInput PunchLimit = new DigitalInput(6);
+    DigitalInput button7 = new DigitalInput(7);
+    //Use DigitalInput,not DigitalIOButton
+    //http://www.chiefdelphi.com/forums/showthread.php?t=104012&highlight=digitaliobutton
+    DigitalInput button8 = new DigitalInput(8); //Spins the  motor to pull launcher until it is pressed
+    
     double modifyJoystickSpeed;
     boolean rpmMatching;
     boolean[] dioButton = new boolean[14];
-    
+//http://www.chiefdelphi.com/forums/showthread.php?p=1328546 has samples of limit switch code, uses [button imitswitchbutton = new digitaliobutton(x);]
+    // We are pretty sure the switch problem is in code, we were unable to find any problems with switches/wiring.
     //Joystick setup
     Joystick drivestick = new Joystick(1);
     Joystick shootstick = new Joystick(2);
@@ -372,7 +378,14 @@ public class Team1482 extends IterativeRobot {
             dioButton[5] = button5.get();
             dioButton[6] = PunchLimit.get();
             dioButton[7] = button7.get();
-            dioButton[8] = button8.get();
+            dioButton[8] = button8.get(); //Pulling mechanism
+            
+            //Do not use while because this will make the robot unresponsive until the button is pressed
+            if(button8.get()) //Is the pulling mechanism finished pulling yet?
+            {
+                System.out.println("Spin motor");
+            }
+            
             //Please explain what DIO 5-8 are in comment.
             
             SmartDashboard.putBoolean("DIO button 5", dioButton[5]); 
@@ -465,12 +478,12 @@ public class Team1482 extends IterativeRobot {
         }
     }
     
-    
     public boolean checkDemoMode(int loops, boolean force) {
         //See if robot is in disabled mode every 40 loops
         if(loops % 40 == 0 || force){
             m_demoMode = SmartDashboard.getBoolean("Demo Mode");
         }
+
         if (m_demoMode) {
             //excute once every 40 calls
             if (loops % 40 == 0 || force) {
