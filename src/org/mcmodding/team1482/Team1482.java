@@ -291,12 +291,10 @@ public class Team1482 extends IterativeRobot {
                     if(modifyJoystickSpeed >= 1){ //Finished speeding up
                         modifyJoystickSpeed = 1;  //Set back to normal
                         System.out.println("Finished speeding up!");
-                        SmartDashboard.putNumber("Speed modifier", modifyJoystickSpeed);
                         rpmMatching = false;
                         
                     }else{
                         modifyJoystickSpeed = modifyJoystickSpeed + Config.GEARUPDELAY;
-                        SmartDashboard.putNumber("Speed modifier", modifyJoystickSpeed);
                         drivestick_x = drivestick_x * modifyJoystickSpeed; //Set speed based on modifier
                         drivestick_y = drivestick_y * modifyJoystickSpeed; //Set speed based on modifier
                     }
