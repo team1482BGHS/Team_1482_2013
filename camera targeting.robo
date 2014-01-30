@@ -1,0 +1,195 @@
+<head><version>2.59.8</version></head>
+<Axis_Internet_Camera>
+  <auto_back_light>TRUE</auto_back_light>
+  <auto_exposure>FALSE</auto_exposure>
+  <auto_white_balance>TRUE</auto_white_balance>
+  <brightness_value>50</brightness_value>
+  <color_level_value>50</color_level_value>
+  <compression_index>5</compression_index>
+  <contrast_value>50</contrast_value>
+  <exposure_value>50</exposure_value>
+  <ip_address>10.14.82.13</ip_address>
+  <is_active>TRUE</is_active>
+  <password>FRC</password>
+  <port>80</port>
+  <sharpness_value>50</sharpness_value>
+  <username>FRC</username>
+</Axis_Internet_Camera>
+<RGB_Filter>
+  <channel>2</channel>
+  <hue_value>30</hue_value>
+  <hysteresis>9</hysteresis>
+  <min_value>205</min_value>
+</RGB_Filter>
+<Math>
+  <all_channels>FALSE</all_channels>
+  <divisor>1</divisor>
+  <function>1</function>
+  <image1>Current</image1>
+  <image2>border</image2>
+  <image_1_channel>2</image_1_channel>
+  <image_2_channel>1</image_2_channel>
+</Math>
+<Adaptive_Threshold>
+  <channel_type>2</channel_type>
+  <filter_size>52</filter_size>
+  <max_threshold>255</max_threshold>
+  <mean_offset>53</mean_offset>
+  <min_threshold>65</min_threshold>
+  <result_type>2</result_type>
+</Adaptive_Threshold>
+<Blob_Size>
+  <cutoff>9</cutoff>
+  <limit>20</limit>
+  <mask>TRUE</mask>
+  <max_area>000</max_area>
+  <min_area>35</min_area>
+  <object_size>23</object_size>
+  <treat_as_color_image>FALSE</treat_as_color_image>
+</Blob_Size>
+<Fill>
+  <check_border>FALSE</check_border>
+  <fill_with_average_color>FALSE</fill_with_average_color>
+  <four_pixel_connectivity>TRUE</four_pixel_connectivity>
+  <size>11</size>
+</Fill>
+<Border/>
+<Blob_Size>
+  <cutoff>9</cutoff>
+  <limit>1</limit>
+  <mask>TRUE</mask>
+  <max_area>000</max_area>
+  <min_area>130</min_area>
+  <object_size>23</object_size>
+  <treat_as_color_image>FALSE</treat_as_color_image>
+</Blob_Size>
+<Blob_Replace disabled>
+  <fill_shape>FALSE</fill_shape>
+  <order_array_on_x>FALSE</order_array_on_x>
+  <order_array_on_y>FALSE</order_array_on_y>
+  <thickness>1</thickness>
+</Blob_Replace>
+<Marker>
+  <include_graphics>0</include_graphics>
+  <name>border</name>
+  <revert_to>Current</revert_to>
+</Marker>
+<Blob_Border/>
+<Crop disabled>
+  <auto_crop>FALSE</auto_crop>
+  <x_end>320</x_end>
+  <x_start>0</x_start>
+  <y_end>130</y_end>
+  <y_start>100</y_start>
+</Crop>
+<Blob_Filter>
+  <create_blob_array_variable>TRUE</create_blob_array_variable>
+  <filters>
+    <tab>
+      <filter>
+        <count_threshold/>
+        <create_array>0</create_array>
+        <filter_id>4</filter_id>
+        <invert_count>0</invert_count>
+        <invert_threshold>0</invert_threshold>
+        <weight_threshold/>
+      </filter>
+    </tab>
+    <tab:2/>
+    <tab:3>
+      <filter>
+        <count_threshold/>
+        <create_array>0</create_array>
+        <filter_id>0</filter_id>
+        <invert_count>0</invert_count>
+        <invert_threshold>0</invert_threshold>
+        <weight_threshold/>
+      </filter>
+    </tab:3>
+    <tab:4>
+      <filter>
+        <count_threshold/>
+        <create_array>0</create_array>
+        <filter_id>0</filter_id>
+        <invert_count>0</invert_count>
+        <invert_threshold>0</invert_threshold>
+        <weight_threshold/>
+      </filter>
+    </tab:4>
+    <tab:5/>
+    <tab:6/>
+  </filters>
+  <largest_is_background>FALSE</largest_is_background>
+  <show_weights>FALSE</show_weights>
+  <sort_array_on_x>FALSE</sort_array_on_x>
+  <sort_array_on_y>FALSE</sort_array_on_y>
+</Blob_Filter>
+<Blob_Tracking>
+  <absent_after_frames>2</absent_after_frames>
+  <aspect_weight>1.0</aspect_weight>
+  <blob_image>Current</blob_image>
+  <color_weight>1.0</color_weight>
+  <display_as_annotation>FALSE</display_as_annotation>
+  <display_id>TRUE</display_id>
+  <display_trail>TRUE</display_trail>
+  <graphic_color_index>6</graphic_color_index>
+  <histogram_weight>1.0</histogram_weight>
+  <id_font_size_index>1</id_font_size_index>
+  <length_limit>150</length_limit>
+  <location_weight>1.0</location_weight>
+  <match_threshold>0.75</match_threshold>
+  <orientation_weight>1.0</orientation_weight>
+  <overlap_weight>1.0</overlap_weight>
+  <present_after_frames>2</present_after_frames>
+  <present_after_pixels>0</present_after_pixels>
+  <raw_image>Source</raw_image>
+  <remove_untracked_blobs>FALSE</remove_untracked_blobs>
+  <shape_weight>1.0</shape_weight>
+  <size_weight>1.0</size_weight>
+  <tracking_precision>1.0</tracking_precision>
+  <track_aspect>FALSE</track_aspect>
+  <track_color>FALSE</track_color>
+  <track_histogram>FALSE</track_histogram>
+  <track_location>FALSE</track_location>
+  <track_orientation>FALSE</track_orientation>
+  <track_overlap>TRUE</track_overlap>
+  <track_shape>FALSE</track_shape>
+  <track_size>FALSE</track_size>
+  <trail_length>5</trail_length>
+</Blob_Tracking>
+<Blob_Label/>
+<VBScript_Program>
+  <script>blobCount = GetVariable("BLOB_COUNT")
+
+
+blobs = GetArrayVariable("blobs")
+
+distance = (1280 / (2.252 * blob_height))
+
+SetVariable "distance", distance
+</script>
+  <source_mode>gui</source_mode>
+</VBScript_Program>
+<Marker>
+  <include_graphics>0</include_graphics>
+  <name>restore</name>
+  <revert_to>Source</revert_to>
+</Marker>
+<Display_Variables>
+  <border_color>purple</border_color>
+  <border_color_index>5</border_color_index>
+  <dim_background>TRUE</dim_background>
+  <display_as_annotation>FALSE</display_as_annotation>
+  <display_value_only>FALSE</display_value_only>
+  <font_size>Normal (10pt)</font_size>
+  <font_size_index>2</font_size_index>
+  <north>BLOB_TRACKING
+BLOBS
+BLOB_COUNT
+</north>
+  <northeast>MOUSE_Y
+MOUSE_X
+</northeast>
+  <northwest>distance
+</northwest>
+</Display_Variables>

@@ -1,0 +1,8 @@
+blobCount = GetVariable("BLOB_COUNT")
+
+
+blobs = GetArrayVariable("blobs")
+
+distance = (1280 / (2.252 * blob_height))
+
+SetVariable "distance", distance

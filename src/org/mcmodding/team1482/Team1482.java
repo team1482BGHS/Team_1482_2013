@@ -257,7 +257,7 @@ public class Team1482 extends IterativeRobot {
             SmartDashboard.putNumber("X Input", drivestick_x);
             SmartDashboard.putNumber("Y Input", drivestick_y);
             SmartDashboard.putNumber("Cam Pan", panAngle);
-            SmartDashboard.putNumber("Cam Tilt", tiltAngle);
+            SmartDashboard.putNumber("Cam Tilt", tiltAngle * 150);
             
             
             panAngle = camPan.get();
@@ -372,6 +372,7 @@ public class Team1482 extends IterativeRobot {
             shootButtons[3] = drivestick.getRawButton(3);
             shootButtons[4] = drivestick.getRawButton(4);
             shootButtons[5] = drivestick.getRawButton(5);
+            shootButtons[6] = drivestick.getRawButton(6); //TO home the camera
             //DIO buttons
             dioButton[5] = button5.get();
             dioButton[6] = PunchLimit.get();
@@ -456,7 +457,7 @@ public class Team1482 extends IterativeRobot {
                     PunchNeutral.set(true);
                     punch.set(0);
                 }
-                
+
                 m_driveStickButtonState[5] = true;
             }else if(!shootButtons[5] && m_driveStickButtonState[5]){
                 System.out.println("Reset 5");
@@ -465,7 +466,12 @@ public class Team1482 extends IterativeRobot {
                 //Reset variable
                 m_driveStickButtonState[5] = false;
             }              
-            
+            /* BUTTON 8 CODE */
+            if(shootButtons[6]){
+                camPan.set(.5);
+                camTilt.set(.57873);
+                System.out.println("Set camera to home position");
+            }
             //feed the watchdog
             getWatchdog().feed();
             Timer.delay(0.01);
