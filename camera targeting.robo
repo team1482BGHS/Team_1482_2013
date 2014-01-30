@@ -87,15 +87,80 @@
   <filters>
     <tab>
       <filter>
-        <count_threshold/>
+        <count_threshold>0</count_threshold>
         <create_array>0</create_array>
-        <filter_id>4</filter_id>
+        <filter_id>22</filter_id>
         <invert_count>0</invert_count>
         <invert_threshold>0</invert_threshold>
-        <weight_threshold/>
+        <weight_threshold>0</weight_threshold>
       </filter>
+      <filter:2>
+        <count_threshold>0</count_threshold>
+        <create_array>0</create_array>
+        <filter_id>38</filter_id>
+        <invert_count>0</invert_count>
+        <invert_threshold>0</invert_threshold>
+        <weight_threshold>0</weight_threshold>
+      </filter:2>
+      <filter:3>
+        <count_threshold>0</count_threshold>
+        <create_array>0</create_array>
+        <filter_id>9</filter_id>
+        <invert_count>0</invert_count>
+        <invert_threshold>0</invert_threshold>
+        <weight_threshold>0</weight_threshold>
+      </filter:3>
+      <filter:4>
+        <count_threshold>0</count_threshold>
+        <create_array>0</create_array>
+        <filter_id>28</filter_id>
+        <invert_count>0</invert_count>
+        <invert_threshold>0</invert_threshold>
+        <weight_threshold>0</weight_threshold>
+      </filter:4>
+      <filter:5>
+        <count_threshold>0</count_threshold>
+        <create_array>0</create_array>
+        <filter_id>94</filter_id>
+        <invert_count>0</invert_count>
+        <invert_threshold>0</invert_threshold>
+        <weight_threshold>0</weight_threshold>
+      </filter:5>
+      <filter:6>
+        <count_threshold>0</count_threshold>
+        <create_array>0</create_array>
+        <filter_id>95</filter_id>
+        <invert_count>0</invert_count>
+        <invert_threshold>0</invert_threshold>
+        <weight_threshold>0</weight_threshold>
+      </filter:6>
+      <filter:7>
+        <count_threshold>0</count_threshold>
+        <create_array>0</create_array>
+        <filter_id>96</filter_id>
+        <invert_count>0</invert_count>
+        <invert_threshold>0</invert_threshold>
+        <weight_threshold>0</weight_threshold>
+      </filter:7>
+      <filter:8>
+        <count_threshold>0</count_threshold>
+        <create_array>0</create_array>
+        <filter_id>97</filter_id>
+        <invert_count>0</invert_count>
+        <invert_threshold>0</invert_threshold>
+        <weight_threshold>0</weight_threshold>
+      </filter:8>
     </tab>
-    <tab:2/>
+    <tab:2>
+      <filter>
+        <count_threshold>0</count_threshold>
+        <create_array>0</create_array>
+        <filter_id>94</filter_id>
+        <invert_count>0</invert_count>
+        <invert_threshold>0</invert_threshold>
+        <weight_threshold>0</weight_threshold>
+      </filter>
+    </tab:2>
     <tab:3>
       <filter>
         <count_threshold/>
@@ -157,14 +222,28 @@
   <track_size>FALSE</track_size>
   <trail_length>5</trail_length>
 </Blob_Tracking>
+<Geometric_Statistics>
+  <basic_statistics>FALSE</basic_statistics>
+</Geometric_Statistics>
+<Calculate_Distance>
+  <result>Blob_height</result>
+  <y_end>TOP_LEFT_Y</y_end>
+  <y_start>BOTTOM_LEFT_Y</y_start>
+</Calculate_Distance>
+<Calculate_Distance>
+  <result>Blob_Width</result>
+  <x_end>RIGHT_BOTTOM_X</x_end>
+  <x_start>LEFT_BOTTOM_X</x_start>
+</Calculate_Distance>
 <Blob_Label/>
 <VBScript_Program>
   <script>blobCount = GetVariable("BLOB_COUNT")
+blobHeight = GetFloatVariable("Blob_height")
 
 
 blobs = GetArrayVariable("blobs")
 
-distance = (1280 / (2.252 * blob_height))
+distance = ((82 * 480) / (.8988 * blobHeight))
 
 SetVariable "distance", distance
 </script>
@@ -192,4 +271,6 @@ MOUSE_X
 </northeast>
   <northwest>distance
 </northwest>
+  <west>Blob_height
+</west>
 </Display_Variables>
