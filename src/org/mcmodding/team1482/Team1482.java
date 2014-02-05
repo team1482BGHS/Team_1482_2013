@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.Watchdog;
 import edu.wpi.first.wpilibj.buttons.Button;
 import edu.wpi.first.wpilibj.buttons.DigitalIOButton;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.PIDController;
 import edu.wpi.first.wpilibj.camera.AxisCamera;
 import edu.wpi.first.wpilibj.image.CriteriaCollection;
 import edu.wpi.first.wpilibj.image.NIVision;
@@ -65,7 +66,6 @@ public class Team1482 extends IterativeRobot {
     //RobotDrive drive = new RobotDrive(drive_left_back, drive_right_back);
     
 
-
     //Create new encoders
     Encoder encoderLeft = new Encoder(3, 4);
     Encoder encoderRight = new Encoder(1, 2);
@@ -81,11 +81,12 @@ public class Team1482 extends IterativeRobot {
     //Use DigitalInput,not DigitalIOButton
     //http://www.chiefdelphi.com/forums/showthread.php?t=104012&highlight=digitaliobutton
     DigitalInput button8 = new DigitalInput(8); //Spins the  motor to pull launcher until it is pressed
+    boolean shooterCharged = false;
     
     double modifyJoystickSpeed;
     boolean rpmMatching;
     boolean[] dioButton = new boolean[14];
-//http://www.chiefdelphi.com/forums/showthread.php?p=1328546 has samples of limit switch code, uses [button imitswitchbutton = new digitaliobutton(x);]
+    //http://www.chiefdelphi.com/forums/showthread.php?p=1328546 has samples of limit switch code, uses [button imitswitchbutton = new digitaliobutton(x);]
     // We are pretty sure the switch problem is in code, we were unable to find any problems with switches/wiring.
     //Joystick setup
     Joystick drivestick = new Joystick(1);
@@ -114,8 +115,8 @@ public class Team1482 extends IterativeRobot {
     Compressor airCompressor      = new Compressor(9,1);
     
     //Setup solenoids
-    public Solenoid Shoot             = new Solenoid(1);
-    public Solenoid ShootReset        = new Solenoid(2);
+    public Solenoid ShooterLock       = new Solenoid(1);
+    public Solenoid ShooterLockReset  = new Solenoid(2);
     public Solenoid Lift              = new Solenoid(3);
     public Solenoid LiftReset         = new Solenoid(4);
     public Solenoid WheelLiftUp       = new Solenoid (2,1);
@@ -166,7 +167,7 @@ public class Team1482 extends IterativeRobot {
         SmartDashboard.putBoolean("Lift State", false);
         SmartDashboard.getBoolean("Demo Mode", false);
         SmartDashboard.getBoolean("Enable shooter?" , true);
-
+        SmartDashboard.putNumber("distance", 0);
         
         /* Uncomment code to invert motor*/
         drive.setInvertedMotor(RobotDrive.MotorType.kFrontLeft, true);
@@ -240,8 +241,8 @@ public class Team1482 extends IterativeRobot {
             
             //Testing robo realm
             try{
-                //distance = SmartDashboard.getNumber("distance");
-                //SmartDashboard.putNumber("Numb from robo realm", distance);
+                distance = SmartDashboard.getNumber("distance");
+                SmartDashboard.putNumber("Numb from robo realm", distance);
             } catch(Exception ex) {
                 ex.printStackTrace();
             }
@@ -374,23 +375,17 @@ public class Team1482 extends IterativeRobot {
             shootButtons[5] = drivestick.getRawButton(5);
             shootButtons[6] = drivestick.getRawButton(6); //TO home the camera
             //DIO buttons
-            dioButton[5] = button5.get();
-            dioButton[6] = PunchLimit.get();
-            dioButton[7] = button7.get();
-            dioButton[8] = button8.get(); //Pulling mechanism
+
+            dioButton[6] = PunchLimit.get(); 
+
             
             //Do not use while because this will make the robot unresponsive until the button is pressed
-            if(button8.get()) //Is the pulling mechanism finished pulling yet?
-            {
-                System.out.println("Spin motor");
-            }
+
             
             //Please explain what DIO 5-8 are in comment.
             
-            SmartDashboard.putBoolean("DIO button 5", dioButton[5]); 
             SmartDashboard.putBoolean("Punch limit", dioButton[6]);
-            SmartDashboard.putBoolean("DIO button 7", dioButton[7]); 
-            SmartDashboard.putBoolean("DIO button 8", dioButton[8]); 
+
             //Button press and not pressed before
 
             /* BUTTON ONE CODE */
@@ -409,10 +404,16 @@ public class Team1482 extends IterativeRobot {
             
             /* BUTTON TWO CODE */
             if(shootButtons[2]&& !m_driveStickButtonState[2]){
-                System.out.println("Pressed 2");
-                //toggle piston
-                state_shoot = common.liftSet(state_shoot, Shoot, ShootReset);
-                m_driveStickButtonState[2] = true;
+                if(shooterCharged){
+                    System.out.println("Shooting ball!");
+                    System.out.println("Pressed 2");
+                    //toggle piston
+                    common.liftSet(false, ShooterLock, ShooterLockReset); //Release the piston holding back ball
+                    m_driveStickButtonState[2] = true;
+                    shooterCharged = false;
+                }else{
+                    System.out.println("SHOOTER IS NOT CHARGED!");
+                }
             }else if(!shootButtons[2] && m_driveStickButtonState[2]){
                 System.out.println("Reset 2");
                 //Reset variable
@@ -446,16 +447,20 @@ public class Team1482 extends IterativeRobot {
             if(shootButtons[5]){
                 System.out.println("Pressed 5");
                 
-                if(!dioButton[6]){
+                if(!dioButton[6]){ //If the punch is not fully back
                     System.out.println("Charging punch!!!!");
                     PunchGear.set(true); //Switch into gear
                     PunchNeutral.set(false);
-                    punch.set(0.6);
+                    punch.set(0.6); //Turns the motor on at 60% power
+                    common.liftSet(true, ShooterLock, ShooterLockReset); //Lock the shooter in place
                 }else{
-                    System.out.println("PUNCHED!");
-                    PunchGear.set(false);
+                    System.out.println("Limit switch hit!");
+
+                    PunchGear.set(false); //Switch to nutural
                     PunchNeutral.set(true);
                     punch.set(0);
+                    shooterCharged = true;
+
                 }
 
                 m_driveStickButtonState[5] = true;
