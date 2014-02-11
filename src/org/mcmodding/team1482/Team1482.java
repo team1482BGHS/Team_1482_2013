@@ -54,12 +54,12 @@ public class Team1482 extends IterativeRobot {
     
     
     //setup talons
-    Talon drive_left_back = new Talon(1);
-    Talon drive_right_back = new Talon(2);
-    Talon drive_left_front = new Talon(3);
+    Talon drive_left_back   = new Talon(1);
+    Talon drive_right_back  = new Talon(2);
+    Talon drive_left_front  = new Talon(3);
     Talon drive_right_front = new Talon(4);
-    Talon punch           = new Talon(7);
-    Talon shoot             = new Talon(10);
+    Talon punch             = new Talon(7);
+    Talon pickup            = new Talon(10);
     // Enabled 4 motor drive, switched Talon 2/4 to 1/2 for less confusing connection, also considering reordering to LLRR instead or LRLR
     //Create drive object
     RobotDrive drive = new RobotDrive(drive_left_front, drive_left_back, drive_right_front, drive_right_back);
@@ -86,11 +86,10 @@ public class Team1482 extends IterativeRobot {
     double modifyJoystickSpeed;
     boolean rpmMatching;
     boolean[] dioButton = new boolean[14];
-    //http://www.chiefdelphi.com/forums/showthread.php?p=1328546 has samples of limit switch code, uses [button imitswitchbutton = new digitaliobutton(x);]
-    // We are pretty sure the switch problem is in code, we were unable to find any problems with switches/wiring.
+    
     //Joystick setup
-    Joystick drivestick = new Joystick(1);
-    Joystick shootstick = new Joystick(2);
+    Joystick driveStick = new Joystick(1);
+    Joystick armStick = new Joystick(2);
     double drivestick_x = 0;
     double drivestick_y = 0;
     double camJoystick_x = 0;
@@ -101,10 +100,10 @@ public class Team1482 extends IterativeRobot {
     public static int NUM_JOYSTICK_BUTTONS = 16;
     //Array to set if button was pressed last itteration
     boolean[] m_driveStickButtonState = new boolean[(NUM_JOYSTICK_BUTTONS+1)];
-    boolean[] m_shootStickButtonState = new boolean[(NUM_JOYSTICK_BUTTONS+1)];    
+    boolean[] m_armStickButtonState = new boolean[(NUM_JOYSTICK_BUTTONS+1)];    
     //Array to set value of button
     boolean[] driveButtons = new boolean[(NUM_JOYSTICK_BUTTONS+1)]; 
-    boolean[] shootButtons = new boolean[(NUM_JOYSTICK_BUTTONS+1)];
+    boolean[] armButtons = new boolean[(NUM_JOYSTICK_BUTTONS+1)];
     //Arrays are one longer than number of buttons to avoid indexing confusion
     //(ie: the number of the button is the same as its index in the array. The
     // first space, index 0, is never used.
@@ -115,28 +114,27 @@ public class Team1482 extends IterativeRobot {
     Compressor airCompressor      = new Compressor(9,1);
     
     //Setup solenoids
-    public Solenoid ShooterLock       = new Solenoid(1);
-    public Solenoid ShooterLockReset  = new Solenoid(2);
-    public Solenoid Lift              = new Solenoid(3);
-    public Solenoid LiftReset         = new Solenoid(4);
-    public Solenoid WheelLiftUp       = new Solenoid (2,1);
-    public Solenoid WheelLiftDown     = new Solenoid (2,2);
-    public Solenoid ArmAngleUp        = new Solenoid (2,3);
-    public Solenoid ArmAngleDown      = new Solenoid (2,4);
-    public Solenoid PunchGear         = new Solenoid (2,5);
-    public Solenoid PunchNeutral      = new Solenoid (2,6);
+    public Solenoid WheelLift         = new Solenoid (1); //Piston 1 Extended
+    public Solenoid WheelLiftReset    = new Solenoid (2); //Piston 1 Retracted
+    public Solenoid TipperKickStart      = new Solenoid (3); //Piston 2 Extended
+    public Solenoid TipperKickStartReset = new Solenoid (4); //Piston 2 Retracted
+    public Solenoid Tipper            = new Solenoid(5); //Piston 3 Extended
+    public Solenoid TipperReset       = new Solenoid(6); //Piston 3 Retracted
+    public Solenoid PunchGear         = new Solenoid (7); //Piston 4 Extended
+    public Solenoid PunchNeutral      = new Solenoid (8); //Piston 4 Retracted
+    public Solenoid ShooterLock       = new Solenoid(2,1); //Piston 5 Extended
+    public Solenoid ShooterLockReset  = new Solenoid(2,2); //Piston 5 Retracted
+    public Solenoid DriveGear1          = new Solenoid (2,3); //Piston 6 - Drive 1st Gear
+    public Solenoid DriveGear2          = new Solenoid (2,4); //Piston 6 - Drive 2nd Gear
     //add more arm solenoids
 
     double combinedSpeed;
-    
-    
-    
+        
     Servo camPan  = new Servo(5);
     Servo camTilt = new Servo(6);
     
     double panAngle;
     double tiltAngle;
-    
     
     //vision V = new vision();
     
@@ -148,9 +146,9 @@ public class Team1482 extends IterativeRobot {
         for (int buttonNum = 1; buttonNum > NUM_JOYSTICK_BUTTONS; buttonNum++) {
             //Set default vales for jpystick button arrays
             m_driveStickButtonState[buttonNum] = false;
-            m_shootStickButtonState[buttonNum] = false;  
+            m_armStickButtonState[buttonNum] = false;  
             driveButtons[buttonNum] = false;
-            shootButtons[buttonNum] = false;
+            armButtons[buttonNum] = false;
             //first array entry (index 0) is never used, so that button numbers
             //correspond to index numbers
         }        
@@ -192,14 +190,25 @@ public class Team1482 extends IterativeRobot {
      */
     public void autonomousInit() {
         getWatchdog().setEnabled(false);
-        System.out.println("There is no autonomous code!");
-        //TODO: Make automous code!
+        
+        //WheelList 1 (reset)
+        //Tipper Kick Start (2) extends
+        //Tipper (3) retracted
+        //PunchGear (4) extended
+        //Shooter lock (5)extends
+        //DriveGear1 (extended)
+        
         
 //        System.out.println("Auto run!");
 //        our_camera.getImage();
 //        
         getWatchdog().setEnabled(true);
         System.out.println("Finished Autonomous");
+    }
+    
+    public void autonomousPeriodic() {
+        //smartdashboard.number
+        
     }
 
     public void teleopInit() {   //Called at the start of teleop
@@ -247,11 +256,11 @@ public class Team1482 extends IterativeRobot {
                 ex.printStackTrace();
             }
             //Get joystick values
-            drivestick_x = drivestick.getRawAxis(1);
-            drivestick_y = drivestick.getRawAxis(2);
-            trigger       = drivestick.getRawAxis(3);
-            camJoystick_x = drivestick.getRawAxis(4);
-            camJoystick_y = drivestick.getRawAxis(5); 
+            drivestick_x = driveStick.getRawAxis(1);
+            drivestick_y = driveStick.getRawAxis(2);
+            trigger       = driveStick.getRawAxis(3);
+            camJoystick_x = driveStick.getRawAxis(4);
+            camJoystick_y = driveStick.getRawAxis(5); 
           
             
             //print controller drive inputs
@@ -368,12 +377,21 @@ public class Team1482 extends IterativeRobot {
             drive.arcadeDrive(drivestick_x, drivestick_y);
             
             //Get values of joystick buttons
-            shootButtons[1] = drivestick.getRawButton(1);
-            shootButtons[2] = drivestick.getRawButton(2);
-            shootButtons[3] = drivestick.getRawButton(3);
-            shootButtons[4] = drivestick.getRawButton(4);
-            shootButtons[5] = drivestick.getRawButton(5);
-            shootButtons[6] = drivestick.getRawButton(6); //TO home the camera
+            //driveStick (joystick1)
+            driveButtons[1] = driveStick.getRawButton(1); //Lift(disabled)
+            driveButtons[2] = driveStick.getRawButton(2); //Shoot
+            driveButtons[3] = driveStick.getRawButton(3); //pickup
+            driveButtons[4] = driveStick.getRawButton(4); //nothing
+            driveButtons[5] = driveStick.getRawButton(5); //charge
+            driveButtons[6] = driveStick.getRawButton(6); //TO home the camera
+            //armstick (Joystick2)
+            armButtons[1] = armStick.getRawButton(1);   //Lift arm up/down  (and lift pickup motor)
+            armButtons[2] = armStick.getRawButton(2);   //charge shooter
+            armButtons[3] = armStick.getRawButton(3);   //start/stop pick up motor
+            armButtons[4] = armStick.getRawButton(4);   //move to start position
+            armButtons[5] = armStick.getRawButton(5); 
+            armButtons[6] = armStick.getRawButton(6);   //shoot              (and lift pickup motor)
+            
             //DIO buttons
 
             dioButton[6] = PunchLimit.get(); 
@@ -382,28 +400,29 @@ public class Team1482 extends IterativeRobot {
             //Do not use while because this will make the robot unresponsive until the button is pressed
 
             
-            //Please explain what DIO 5-8 are in comment.
+            
             
             SmartDashboard.putBoolean("Punch limit", dioButton[6]);
 
             //Button press and not pressed before
 
-            /* BUTTON ONE CODE */
-            if(shootButtons[1] && !m_driveStickButtonState[1]){
+            /* DRIVE BUTTON ONE CODE 
+            if(driveButtons[1] && !m_driveStickButtonState[1]){
                 System.out.println("Pressed!");
                 //Set the sate of the button
                 m_driveStickButtonState[1] = true;
                 //Extend/Retract lifter
                 state_lift = common.liftSet(state_lift, Lift, LiftReset);
                 gear = 1;
-            }else if(!shootButtons[1] && m_driveStickButtonState[1]){
+            }else if(!driveButtons[1] && m_driveStickButtonState[1]){
                 System.out.println("Reseting button!");
                 m_driveStickButtonState[1] = false;
             }
+            */
+            //commented out obsolete lift code
             
-            
-            /* BUTTON TWO CODE */
-            if(shootButtons[2]&& !m_driveStickButtonState[2]){
+            /* DRIVE BUTTON TWO CODE */
+            if(driveButtons[2]&& !m_driveStickButtonState[2]){
                 if(shooterCharged){
                     System.out.println("Shooting ball!");
                     System.out.println("Pressed 2");
@@ -414,37 +433,37 @@ public class Team1482 extends IterativeRobot {
                 }else{
                     System.out.println("SHOOTER IS NOT CHARGED!");
                 }
-            }else if(!shootButtons[2] && m_driveStickButtonState[2]){
+            }else if(!driveButtons[2] && m_driveStickButtonState[2]){
                 System.out.println("Reset 2");
                 //Reset variable
                 m_driveStickButtonState[2] = false;
             }
             
             
-            /* BUTTON THREE CODE */
-            if(shootButtons[3]&& !m_driveStickButtonState[3]){
+            /* DRIVE BUTTON THREE CODE */
+            if(driveButtons[3]&& !m_driveStickButtonState[3]){
                 System.out.println("Pressed 3");
                 //Turn motor on/off
-                state_motor = common.motor(state_motor, shoot);
+                state_motor = common.motor(state_motor, pickup);
                 m_driveStickButtonState[3] = true;
-            }else if(!shootButtons[3] && m_driveStickButtonState[3]){
+            }else if(!driveButtons[3] && m_driveStickButtonState[3]){
                 System.out.println("Reset 3");
                 //Reset variable
                 m_driveStickButtonState[3] = false;
             }
-            /* BUTTON FOUR CODE */
-            if(shootButtons[4]&& !m_driveStickButtonState[4]){
+            /* DRIVE BUTTON FOUR CODE */
+            if(driveButtons[4]&& !m_driveStickButtonState[4]){
                 System.out.println("Pressed 4");
                 //Turn motor on/off
                 //V.getImage();
                 m_driveStickButtonState[4] = true;
-            }else if(!shootButtons[4] && m_driveStickButtonState[4]){
+            }else if(!driveButtons[4] && m_driveStickButtonState[4]){
                 System.out.println("Reset 4");
                 //Reset variable
                 m_driveStickButtonState[4] = false;
             }            
-            /* BUTTON FOUR CODE */
-            if(shootButtons[5]){
+            /* DRIVE BUTTON FIVE CODE */
+            if(driveButtons[5]){
                 System.out.println("Pressed 5");
                 
                 if(!dioButton[6]){ //If the punch is not fully back
@@ -464,19 +483,21 @@ public class Team1482 extends IterativeRobot {
                 }
 
                 m_driveStickButtonState[5] = true;
-            }else if(!shootButtons[5] && m_driveStickButtonState[5]){
+            }else if(!driveButtons[5] && m_driveStickButtonState[5]){
                 System.out.println("Reset 5");
                 punch.set(0);
                 
                 //Reset variable
                 m_driveStickButtonState[5] = false;
             }              
-            /* BUTTON 8 CODE */
-            if(shootButtons[6]){
+            /* DRIVE BUTTON 8 CODE */
+            if(driveButtons[6]){
                 camPan.set(.5);
                 camTilt.set(.57873);
                 System.out.println("Set camera to home position");
             }
+            
+            
             //feed the watchdog
             getWatchdog().feed();
             Timer.delay(0.01);
