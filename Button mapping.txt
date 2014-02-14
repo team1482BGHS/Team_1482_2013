@@ -1,0 +1,13 @@
+DriveStick-
+	Left Stick-Drive
+	R Trigger- Force First
+	L Trigger- Force Second
+	
+ShootStick-
+	L Stick- Camera Tilt (up/down)
+	A (Button1)- Tipper (Extend Tipper piston, only while not upright)
+	X (Button3)- Charge shooter (Or automatically, engage PunchGear, engage punch motor)
+	Back/Sel (Button 7)- Return Upright (1. Retract Tipper; 2.Extend TipperKickStart)
+	Right Trigger- Shoot (Retract ShooterLock, only when charged)
+	Left Trigger- Pass (Extend tipper while keeping pickupwheel up)
+	0

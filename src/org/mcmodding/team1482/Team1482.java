@@ -67,8 +67,8 @@ public class Team1482 extends IterativeRobot {
     
 
     //Create new encoders
-    Encoder encoderLeft = new Encoder(3, 4);
     Encoder encoderRight = new Encoder(1, 2);
+    Encoder encoderLeft  = new Encoder(3, 4);
     //Encoder related variables
     double LeftSpeed; //Encoder speed
     double LeftAbsSpeed; //Absolute encoder speed
@@ -86,6 +86,8 @@ public class Team1482 extends IterativeRobot {
     double modifyJoystickSpeed;
     boolean rpmMatching;
     boolean[] dioButton = new boolean[14];
+    boolean pickuptoggle;
+    boolean pickuptracking;
     
     //Joystick setup
     Joystick driveStick = new Joystick(1);
@@ -116,7 +118,7 @@ public class Team1482 extends IterativeRobot {
     //Setup solenoids
     public Solenoid WheelLift         = new Solenoid (1); //Piston 1 Extended
     public Solenoid WheelLiftReset    = new Solenoid (2); //Piston 1 Retracted
-    public Solenoid TipperKickStart      = new Solenoid (3); //Piston 2 Extended
+    public Solenoid TipperKickStart   = new Solenoid (3);  //Piston 2 Extended
     public Solenoid TipperKickStartReset = new Solenoid (4); //Piston 2 Retracted
     public Solenoid Tipper            = new Solenoid(5); //Piston 3 Extended
     public Solenoid TipperReset       = new Solenoid(6); //Piston 3 Retracted
@@ -126,6 +128,13 @@ public class Team1482 extends IterativeRobot {
     public Solenoid ShooterLockReset  = new Solenoid(2,2); //Piston 5 Retracted
     public Solenoid DriveGear1          = new Solenoid (2,3); //Piston 6 - Drive 1st Gear
     public Solenoid DriveGear2          = new Solenoid (2,4); //Piston 6 - Drive 2nd Gear
+    
+    //States for pistons
+    public boolean m_wheellift_state = false;
+    public boolean m_tipper_state = false;
+    public boolean m_charge_punch = false;
+    public boolean m_kickStart    = true;
+    public boolean m_wheel_pickup_state = false;
     //add more arm solenoids
 
     double combinedSpeed;
@@ -223,14 +232,17 @@ public class Team1482 extends IterativeRobot {
         //Start compresser
         airCompressor.start();
         //Set defualt values for gear shifter
-        Lift.set(true);
-        LiftReset.set(false);
-        WheelLiftUp.set(true);
-        WheelLiftDown.set(false);
+        DriveGear1.set(true);
+        DriveGear2.set(false);
         gear = 1;
-        
-        
-        
+        pickuptoggle = true;
+        m_wheel_pickup_state = false;
+        m_wheellift_state =  false;
+        common.liftSet(true, WheelLift, WheelLiftReset);
+        m_tipper_state = false;
+        common.liftSet(true, Tipper, TipperReset);
+        m_kickStart = true;
+        common.liftSet(true, TipperKickStart, TipperKickStartReset);
         //Get smartdashboard variables
         //m_demoMode = SmartDashboard.getBoolean("Demo Mode");
         //this.checkDemoMode(m_teleEnabledLoops, true);
@@ -244,36 +256,20 @@ public class Team1482 extends IterativeRobot {
         getWatchdog().feed();
         Timer.delay(0.07);
     }
-    public void teleopPeriodic() {  //Called durring operated control
-        if (isEnabled()) {  //If the robot is enabled
-            
-            
-            //Testing robo realm
-            try{
-                distance = SmartDashboard.getNumber("distance");
-                SmartDashboard.putNumber("Numb from robo realm", distance);
-            } catch(Exception ex) {
-                ex.printStackTrace();
-            }
-            //Get joystick values
-            drivestick_x = driveStick.getRawAxis(1);
-            drivestick_y = driveStick.getRawAxis(2);
-            trigger       = driveStick.getRawAxis(3);
-            camJoystick_x = driveStick.getRawAxis(4);
-            camJoystick_y = driveStick.getRawAxis(5); 
-          
-            
-            //print controller drive inputs
+    public void joystick1(){
             SmartDashboard.putNumber("X Input", drivestick_x);
             SmartDashboard.putNumber("Y Input", drivestick_y);
             SmartDashboard.putNumber("Cam Pan", panAngle);
-            SmartDashboard.putNumber("Cam Tilt", tiltAngle * 150);
             
+            //Get joystick1 values
+            drivestick_x = driveStick.getRawAxis(1);
+            drivestick_y = driveStick.getRawAxis(2);
+            trigger       = driveStick.getRawAxis(3);
+            //camJoystick_x = driveStick.getRawAxis(4); //Not used in 2014 bot
+            camJoystick_y = driveStick.getRawAxis(5); 
             
-            panAngle = camPan.get();
+            //panAngle = camPan.get();//Not used for 2014 bot
             tiltAngle = camTilt.get();
-           
-            //System.out.println(camJoystick_x + " Y is " + camJoystick_y);
             
             if(camJoystick_x <= -.2){
                 //Rotate the camera left
@@ -295,6 +291,23 @@ public class Team1482 extends IterativeRobot {
                 camTilt.set(tiltAngle - (camJoystick_y / 30));  
                 //System.out.println("turning up");
             }
+            
+            /* Encoders */
+            LeftSpeed = encoderLeft.getRate();
+            RightSpeed = encoderRight.getRate();
+            LeftAbsSpeed = Math.abs(LeftSpeed); //Get the absolute value of encoder value
+            RightAbsSpeed = Math.abs(RightSpeed);
+            combinedSpeed = LeftAbsSpeed + RightAbsSpeed;
+            joystickYaw = Math.abs(drivestick_x);
+            
+             //Gear and speed debug
+            SmartDashboard.putNumber("Left speed", LeftSpeed); //Display speed on dashboard
+            SmartDashboard.putNumber("Right speed", RightSpeed); //Display speed on dashboard
+            SmartDashboard.putNumber("Gear", gear);
+            SmartDashboard.putBoolean("rpm matching", rpmMatching);
+            SmartDashboard.putNumber("Modifier", modifyJoystickSpeed);
+            SmartDashboard.putNumber("combinedSpeed", combinedSpeed);  
+            
             if(rpmMatching){ //If is RPM is changing
                 if(gear == 2){ //See if robot is in gear 2
                     //Speed matching code here
@@ -314,50 +327,32 @@ public class Team1482 extends IterativeRobot {
                     modifyJoystickSpeed = 1;
                 }
             }
-            
-            //Get speed from encoder
-            LeftSpeed = encoderLeft.getRate();
-            RightSpeed = encoderRight.getRate();
-            LeftAbsSpeed = Math.abs(LeftSpeed); //Get the absolute value of encoder value
-            RightAbsSpeed = Math.abs(RightSpeed);
-            combinedSpeed = LeftAbsSpeed + RightAbsSpeed;
-            joystickYaw = Math.abs(drivestick_x);
-            
-            
-            
-            //Camera debug
-            SmartDashboard.putBoolean("Compresser state", airCompressor.enabled());
-            SmartDashboard.putBoolean("Compressor switch value", airCompressor.getPressureSwitchValue());
-            //Gear and speed debug
-            SmartDashboard.putNumber("Left speed", LeftSpeed); //Display speed on dashboard
-            SmartDashboard.putNumber("Right speed", RightSpeed); //Display speed on dashboard
-            SmartDashboard.putNumber("Gear", gear);
-            SmartDashboard.putBoolean("rpm matching", rpmMatching);
-            SmartDashboard.putNumber("Modifier", modifyJoystickSpeed);
-            SmartDashboard.putNumber("combinedSpeed", combinedSpeed);
-            
-                    
+                        
             if(trigger >= .5){
                 //If the right trigger is pressed switch to gear 2
                 manual = true;
-                Lift.set(false);
-                LiftReset.set(true);
+                DriveGear1.set(false);
+                DriveGear2.set(true);
                 gear = 2;
             }else if(trigger <= -.5){
                 //If the left trigger is pressed switch to gear 1;
                 System.out.println("Gearing Down");    
                 manual = true;
-                Lift.set(true);
-                LiftReset.set(false);
+                DriveGear1.set(true);
+                DriveGear2.set(false);
                 gear = 1;
             }else{
                 manual = false;
             }
             
-            if(gear == 1 && combinedSpeed > Config.GEARUP && !manual){ //Switch gear up if is in gear one and is above configured speed
+            
+            
+            
+            
+             if(gear == 1 && combinedSpeed > Config.GEARUP && !manual){ //Switch gear up if is in gear one and is above configured speed
                 //Switch to gear 2
-                Lift.set(false);
-                LiftReset.set(true);
+                DriveGear1.set(false);
+                DriveGear2.set(true);
                 System.out.println("Swited to gear 2! at speed of " + LeftAbsSpeed);
                 gear = 2;
                 //Code to slow motor when switching gears.
@@ -366,45 +361,91 @@ public class Team1482 extends IterativeRobot {
                 
             }else if(gear ==2 && combinedSpeed < Config.GEARDOWN && !manual){  //Gear down if is in gear 2 and is below configured speed
                 //Switch to gear 1
-                Lift.set(true);
-                LiftReset.set(false);
+                DriveGear1.set(true);
+                DriveGear2.set(false);
                 System.out.println("Switched to gear 1! at a speed of " + LeftAbsSpeed);
                 gear = 1;
             }
-            
-            
-            //Drive motors based on joystick values
+                        
+                        
             drive.arcadeDrive(drivestick_x, drivestick_y);
             
-            //Get values of joystick buttons
-            //driveStick (joystick1)
-            driveButtons[1] = driveStick.getRawButton(1); //Lift(disabled)
-            driveButtons[2] = driveStick.getRawButton(2); //Shoot
-            driveButtons[3] = driveStick.getRawButton(3); //pickup
-            driveButtons[4] = driveStick.getRawButton(4); //nothing
-            driveButtons[5] = driveStick.getRawButton(5); //charge
-            driveButtons[6] = driveStick.getRawButton(6); //TO home the camera
-            //armstick (Joystick2)
-            armButtons[1] = armStick.getRawButton(1);   //Lift arm up/down  (and lift pickup motor)
-            armButtons[2] = armStick.getRawButton(2);   //charge shooter
-            armButtons[3] = armStick.getRawButton(3);   //start/stop pick up motor
-            armButtons[4] = armStick.getRawButton(4);   //move to start position
-            armButtons[5] = armStick.getRawButton(5); 
-            armButtons[6] = armStick.getRawButton(6);   //shoot              (and lift pickup motor)
+    }
+    public void joystick2(){
+        
+        dioButton[6] = PunchLimit.get(); //Used to stop the punch from over retracting
+        SmartDashboard.putBoolean("Punch limit", dioButton[6]);
+        //armstick (Joystick2)
+        armButtons[1] = armStick.getRawButton(1);   //Lift arm up/down  (and DriveGear1 pickup motor)
+        armButtons[2] = armStick.getRawButton(2);   //charge shooter
+        armButtons[3] = armStick.getRawButton(3);   //start/stop pick up motor
+        armButtons[4] = armStick.getRawButton(4);   //move to start position
+        armButtons[5] = armStick.getRawButton(5); 
+        armButtons[6] = armStick.getRawButton(6);   //shoot              (and lift pickup motor)
+        armButtons[7] = armStick.getRawButton(7);
+       
+       /* BUTTON 1(A) Code */
+        if(armButtons[1] && !m_armStickButtonState[1]){
+            m_armStickButtonState[1] = true;
+            //Toggle piston
+            //If the kick starter is not extended, toggle the tipper 
+            if(!m_kickStart){
+                m_tipper_state = common.liftSet(m_tipper_state, Tipper, TipperReset);
+                System.out.println("Switching tipper " + m_tipper_state);
+            }else{
+                System.out.println("Kick start not in right position " + m_kickStart);
+            }
+        }else if(!armButtons[1] && m_armStickButtonState[1]){
+        m_armStickButtonState[1] = false;
+        }
+        
+        /*BUTTON 2(B) code*/    //Added toggle code for pickup motor & piston
+        if(armButtons[2] && pickuptoggle){
+            pickuptoggle = false;
+            m_wheellift_state = common.liftSet(m_wheellift_state, WheelLift, WheelLiftReset);
+            m_wheel_pickup_state = common.motor(m_wheel_pickup_state, pickup, .7);
+    
+        }else if(!armButtons[2]){
+            pickuptoggle = true;         
+        }
+        
+        /* BUTTON 3(X) Code */
+        if(armButtons[3] && !m_armStickButtonState[3]){
+            //Change shooter
+            m_charge_punch=true;
+            m_armStickButtonState[3] = true;
+         }else if(!armButtons[3] && m_armStickButtonState[3]){
+             m_armStickButtonState[3] = false;
+         }
+        
+        /* BUTTON 7(back) code */
+        if(armButtons[7] && !m_armStickButtonState[7]){
+            //toggle tipper kick start
+            if(!m_tipper_state){
+                
+                m_kickStart = common.liftSet(m_kickStart, TipperKickStart, TipperKickStartReset);
+                System.out.println("Tipper state : " + m_kickStart);
+            }else{
+                System.out.println("Tipper not in te right state " + m_tipper_state);
+            }
+            m_armStickButtonState[7] = true;
             
-            //DIO buttons
-
-            dioButton[6] = PunchLimit.get(); 
-
+        }else if(!armButtons[7] && m_armStickButtonState[7]){
+            m_armStickButtonState[7] = false;
+        }
+        
+    }
+    public void teleopPeriodic() {  //Called durring operated control
+        if (isEnabled()) {  //If the robot is enabled
             
-            //Do not use while because this will make the robot unresponsive until the button is pressed
-
             
-            
-            
-            SmartDashboard.putBoolean("Punch limit", dioButton[6]);
-
-            //Button press and not pressed before
+            //Testing robo realm
+            try{
+                distance = SmartDashboard.getNumber("distance");
+                SmartDashboard.putNumber("Numb from robo realm", distance);
+            } catch(Exception ex) {
+                ex.printStackTrace();
+            }
 
             /* DRIVE BUTTON ONE CODE 
             if(driveButtons[1] && !m_driveStickButtonState[1]){
@@ -422,82 +463,73 @@ public class Team1482 extends IterativeRobot {
             //commented out obsolete lift code
             
             /* DRIVE BUTTON TWO CODE */
-            if(driveButtons[2]&& !m_driveStickButtonState[2]){
-                if(shooterCharged){
-                    System.out.println("Shooting ball!");
-                    System.out.println("Pressed 2");
-                    //toggle piston
-                    common.liftSet(false, ShooterLock, ShooterLockReset); //Release the piston holding back ball
-                    m_driveStickButtonState[2] = true;
-                    shooterCharged = false;
-                }else{
-                    System.out.println("SHOOTER IS NOT CHARGED!");
-                }
-            }else if(!driveButtons[2] && m_driveStickButtonState[2]){
-                System.out.println("Reset 2");
-                //Reset variable
-                m_driveStickButtonState[2] = false;
-            }
+//            if(driveButtons[2]&& !m_driveStickButtonState[2]){
+//                if(shooterCharged){
+//                    System.out.println("Shooting ball!");
+//                    System.out.println("Pressed 2");
+//                    //toggle piston
+//                    common.liftSet(false, ShooterLock, ShooterLockReset); //Release the piston holding back ball
+//                    m_driveStickButtonState[2] = true;
+//                    shooterCharged = false;
+//                }else{
+//                    System.out.println("SHOOTER IS NOT CHARGED!");
+//                }
+//            }else if(!driveButtons[2] && m_driveStickButtonState[2]){
+//                System.out.println("Reset 2");
+//                //Reset variable
+//                m_driveStickButtonState[2] = false;
+//            }
+//            
+//            
+//            /* DRIVE BUTTON THREE CODE */
+//            if(driveButtons[3]&& !m_driveStickButtonState[3]){
+//                System.out.println("Pressed 3");
+//                //Turn motor on/off
+//                state_motor = common.motor(state_motor, pickup);
+//                m_driveStickButtonState[3] = true;
+//            }else if(!driveButtons[3] && m_driveStickButtonState[3]){
+//                System.out.println("Reset 3");
+//                //Reset variable
+//                m_driveStickButtonState[3] = false;
+//            }
+//            /* DRIVE BUTTON FOUR CODE */
+// 
+//            /* DRIVE BUTTON FIVE CODE */
+//            if(driveButtons[5]){
+//                System.out.println("Pressed 5");
+//                
+//                if(!dioButton[6]){ //If the punch is not fully back
+//                    System.out.println("Charging punch!!!!");
+//                    PunchGear.set(true); //Switch into gear
+//                    PunchNeutral.set(false);
+//                    punch.set(0.6); //Turns the motor on at 60% power
+//                    common.liftSet(true, ShooterLock, ShooterLockReset); //Lock the shooter in place
+//                }else{
+//                    System.out.println("Limit switch hit!");
+//
+//                    PunchGear.set(false); //Switch to nutural
+//                    PunchNeutral.set(true);
+//                    punch.set(0);
+//                    shooterCharged = true;
+//
+//                }
+//
+//                m_driveStickButtonState[5] = true;
+//            }else if(!driveButtons[5] && m_driveStickButtonState[5]){
+//                System.out.println("Reset 5");
+//                punch.set(0);
+//                
+//                //Reset variable
+//                m_driveStickButtonState[5] = false;
+//            }            
             
-            
-            /* DRIVE BUTTON THREE CODE */
-            if(driveButtons[3]&& !m_driveStickButtonState[3]){
-                System.out.println("Pressed 3");
-                //Turn motor on/off
-                state_motor = common.motor(state_motor, pickup);
-                m_driveStickButtonState[3] = true;
-            }else if(!driveButtons[3] && m_driveStickButtonState[3]){
-                System.out.println("Reset 3");
-                //Reset variable
-                m_driveStickButtonState[3] = false;
-            }
-            /* DRIVE BUTTON FOUR CODE */
-            if(driveButtons[4]&& !m_driveStickButtonState[4]){
-                System.out.println("Pressed 4");
-                //Turn motor on/off
-                //V.getImage();
-                m_driveStickButtonState[4] = true;
-            }else if(!driveButtons[4] && m_driveStickButtonState[4]){
-                System.out.println("Reset 4");
-                //Reset variable
-                m_driveStickButtonState[4] = false;
-            }            
-            /* DRIVE BUTTON FIVE CODE */
-            if(driveButtons[5]){
-                System.out.println("Pressed 5");
-                
-                if(!dioButton[6]){ //If the punch is not fully back
-                    System.out.println("Charging punch!!!!");
-                    PunchGear.set(true); //Switch into gear
-                    PunchNeutral.set(false);
-                    punch.set(0.6); //Turns the motor on at 60% power
-                    common.liftSet(true, ShooterLock, ShooterLockReset); //Lock the shooter in place
-                }else{
-                    System.out.println("Limit switch hit!");
-
-                    PunchGear.set(false); //Switch to nutural
-                    PunchNeutral.set(true);
-                    punch.set(0);
-                    shooterCharged = true;
-
-                }
-
-                m_driveStickButtonState[5] = true;
-            }else if(!driveButtons[5] && m_driveStickButtonState[5]){
-                System.out.println("Reset 5");
-                punch.set(0);
-                
-                //Reset variable
-                m_driveStickButtonState[5] = false;
-            }              
-            /* DRIVE BUTTON 8 CODE */
-            if(driveButtons[6]){
-                camPan.set(.5);
-                camTilt.set(.57873);
-                System.out.println("Set camera to home position");
-            }
-            
-            
+            joystick1();
+            joystick2();
+            SmartDashboard.putBoolean("Tipper state", m_tipper_state);
+            SmartDashboard.putBoolean("Kick start state", m_kickStart);
+            SmartDashboard.putBoolean("Compressor Switch", airCompressor.getPressureSwitchValue());
+            SmartDashboard.putBoolean("compressor enabled", airCompressor.enabled());
+            airCompressor.start();
             //feed the watchdog
             getWatchdog().feed();
             Timer.delay(0.01);

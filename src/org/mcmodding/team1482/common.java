@@ -43,10 +43,9 @@ public class common {
         }
 
     }
-    public static boolean motor(boolean state, Talon motor){
+    public static boolean motor(boolean state, Talon motor , double speed){
         if(!state){
-            double shootSpeed = SmartDashboard.getNumber("Shooter speed", -1);
-            motor.set(shootSpeed);
+            motor.set(speed);
             System.out.println("Turned on motor!");
             return true;
         }else{
