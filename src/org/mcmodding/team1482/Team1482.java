@@ -96,7 +96,6 @@ public class Team1482 extends IterativeRobot {
     double drivestick_y = 0;
     double camJoystick_x = 0;
     double camJoystick_y = 0;
-    double trigger = 0;
     boolean manual = false;
     //Number of joystick buttons
     public static int NUM_JOYSTICK_BUTTONS = 16;
@@ -264,7 +263,7 @@ public class Team1482 extends IterativeRobot {
             //Get joystick1 values
             drivestick_x = driveStick.getRawAxis(1);
             drivestick_y = driveStick.getRawAxis(2);
-            trigger       = driveStick.getRawAxis(3);
+            double trigger       = driveStick.getRawAxis(3);
             //camJoystick_x = driveStick.getRawAxis(4); //Not used in 2014 bot
             camJoystick_y = driveStick.getRawAxis(5); 
             
@@ -372,7 +371,7 @@ public class Team1482 extends IterativeRobot {
             
     }
     public void joystick2(){
-        
+        double trigger       = armStick.getRawAxis(3);
         dioButton[6] = PunchLimit.get(); //Used to stop the punch from over retracting
         SmartDashboard.putBoolean("Punch limit", dioButton[6]);
         //armstick (Joystick2)
@@ -384,25 +383,41 @@ public class Team1482 extends IterativeRobot {
         armButtons[6] = armStick.getRawButton(6);   //shoot              (and lift pickup motor)
         armButtons[7] = armStick.getRawButton(7);
        
+        
+        if (trigger >= .5 || trigger <= -.5) {
+            //If the right trigger is pressed Shoot the ball
+            common.liftSet(true, ShooterLock, ShooterLockReset);
+        } else {
+            common.liftSet(false, ShooterLock, ShooterLockReset);
+        }  
+        
+        
        /* BUTTON 1(A) Code */
-        if(armButtons[1] && !m_armStickButtonState[1]){
+        if (armButtons[1] && !m_armStickButtonState[1]) {
             m_armStickButtonState[1] = true;
             //Toggle piston
             //If the kick starter is not extended, toggle the tipper 
-            if(!m_kickStart){
+            if (!m_kickStart) {
                 m_tipper_state = common.liftSet(m_tipper_state, Tipper, TipperReset);
                 System.out.println("Switching tipper " + m_tipper_state);
-            }else{
+            } else {
                 System.out.println("Kick start not in right position " + m_kickStart);
             }
-        }else if(!armButtons[1] && m_armStickButtonState[1]){
-        m_armStickButtonState[1] = false;
+        } else if (!armButtons[1] && m_armStickButtonState[1]) {
+            m_armStickButtonState[1] = false;
         }
         
         /*BUTTON 2(B) code*/    //Added toggle code for pickup motor & piston
         if(armButtons[2] && pickuptoggle){
             pickuptoggle = false;
             m_wheellift_state = common.liftSet(m_wheellift_state, WheelLift, WheelLiftReset);
+//Un comment following code to toggle pistion and pickup motor at once
+            //            if(!m_kickStart){
+//                m_tipper_state = common.liftSet(m_tipper_state, Tipper, TipperReset);
+//                System.out.println("Switching tipper " + m_tipper_state);
+//            }else{
+//                System.out.println("Kick start not in right position " + m_kickStart);
+//            }
             m_wheel_pickup_state = common.motor(m_wheel_pickup_state, pickup, .7);
     
         }else if(!armButtons[2]){
@@ -433,7 +448,18 @@ public class Team1482 extends IterativeRobot {
         }else if(!armButtons[7] && m_armStickButtonState[7]){
             m_armStickButtonState[7] = false;
         }
-        
+        if(m_charge_punch && dioButton[6]){ 
+            //Charge shooter
+            System.out.println("charging shooter");
+            common.liftSet(false, PunchGear, PunchNeutral);
+            punch.set(1); //Uncomment once direction and speed has been determined
+        }else if(m_charge_punch && !dioButton[6]){
+            //Shooter is fully charged
+            System.out.println("Fully charged");
+            punch.set(0);
+            common.liftSet(true, PunchGear, PunchNeutral);
+            m_charge_punch = false;
+        }
     }
     public void teleopPeriodic() {  //Called durring operated control
         if (isEnabled()) {  //If the robot is enabled
