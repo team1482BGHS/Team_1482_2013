@@ -19,7 +19,7 @@
   <channel>2</channel>
   <hue_value>22</hue_value>
   <hysteresis>9</hysteresis>
-  <min_value>165</min_value>
+  <min_value>180</min_value>
 </RGB_Filter>
 <Math disabled>
   <all_channels>FALSE</all_channels>
@@ -237,7 +237,6 @@
 </Calculate_Distance>
 <Blob_Label/>
 <VBScript_Program>
-  <filename>.\Vertical distance code.vbs</filename>
   <script>blobCount = GetVariable("BLOB_COUNT")
 blobHeight = GetFloatVariable("Blob_height")
 
@@ -248,7 +247,7 @@ distance = ((82 * 480) / (.8988 * blobHeight))
 
 SetVariable "distance", distance
 </script>
-  <source_mode>file</source_mode>
+  <source_mode>gui</source_mode>
 </VBScript_Program>
 <Marker>
   <include_graphics>0</include_graphics>

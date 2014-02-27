@@ -16,16 +16,9 @@ import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Encoder;
-import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.Servo;
-import edu.wpi.first.wpilibj.Watchdog;
-import edu.wpi.first.wpilibj.buttons.Button;
-import edu.wpi.first.wpilibj.buttons.DigitalIOButton;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.PIDController;
-import edu.wpi.first.wpilibj.camera.AxisCamera;
-import edu.wpi.first.wpilibj.image.CriteriaCollection;
-import edu.wpi.first.wpilibj.image.NIVision;
+import edu.wpi.first.wpilibj.Watchdog;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -216,6 +209,25 @@ public class Team1482 extends IterativeRobot {
     
     public void autonomousPeriodic() {
         //smartdashboard.number
+        double distanceToTarg =  (int) SmartDashboard.getNumber("distance", 0);
+        System.out.println(distanceToTarg);
+        double distanceAway = distanceToTarg + Config.DISTANCESETPOINT;
+        double error = Math.abs(distanceAway);
+        if(error <= Config.DISTACETOLERANCE){
+            System.out.println("Withen configured distace");
+            drive.arcadeDrive(0, 0);
+        }else{
+            System.out.println("Not withen distance! you are " + distanceAway + "cm off of setpoint!");
+            if(distanceAway > 500){
+                drive.arcadeDrive(.7, 0);
+                System.out.println("Debug: Case 500");
+            }else if(distanceAway > 100 && distanceAway <= 500){
+                drive.arcadeDrive(.2, 0);
+                System.out.println("Debug: case 100");
+            }
+        }
+        Timer.delay(.1);
+        getWatchdog().feed();
         
     }
 
@@ -418,7 +430,7 @@ public class Team1482 extends IterativeRobot {
 //            }else{
 //                System.out.println("Kick start not in right position " + m_kickStart);
 //            }
-            m_wheel_pickup_state = common.motor(m_wheel_pickup_state, pickup, .7);
+            m_wheel_pickup_state = common.motor(m_wheel_pickup_state, pickup, 1);
     
         }else if(!armButtons[2]){
             pickuptoggle = true;         

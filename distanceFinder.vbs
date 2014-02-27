@@ -18,17 +18,21 @@ else
 			SetVariable "targeting", "Vertical"
 		end if
 	else	'it is horizontal
-		hypotenuse = (IMAGEWIDTH* TARGETHEIGHT)/(2 * blobHeight * FOV)
-		arg = blobWidth / (blobHeight * (TARGETWIDTH/TARGETHEIGHT))
-		tarAngle = ASIN(arg) * 180/3.14
-		tarDistance = hypotenuse * Cos(tarAngle * 3.14/180)
+		'hypotenuse = (307200)/( blobHeight * 1.28)
+		'arg = blobWidth / (blobHeight * 5.87598)
+		'tarAngle = ASIN(arg) * 57.3248
+		'tarDistance = hypotenuse * Cos(tarAngle * .01744)
 		
-		SetVariable "Hypotenuse", hypotenuse
-		SetVariable "TarAngle", tarAngle
+		'SetVariable "Hypotenuse", hypotenuse
+		'SetVariable "TarAngle", tarAngle
 		
-		SetVariable "Arg", arg
-		SetVariable "TarDistance", tarDistance
-		SetVariable "targeting", "Horizontal"
+		'SetVariable "Arg", arg
+		'SetVariable "TarDistance", tarDistance
+		'SetVariable "targeting", "Horizontal"
+		'Simple version
+	distance = ((82 * 640) /  blobWidth) '(2.252 * blobwidth
+			SetVariable "distance", distance
+			SetVariable "targeting", "Horizontal"
 				
 	end if
 end if
